@@ -1,0 +1,577 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>SINAI Club — The app for football coaches</title>
+<meta name="description" content="SINAI Club for football coaches, football schools and clubs: a complete session in a minute, a professional plan for the month or the season, tap-to-rate players throughout training, and a Football Manager-style player card.">
+<meta name="theme-color" content="#1E45B0">
+<link rel="alternate" hreflang="he" href="https://sinaiclub.com/">
+<link rel="alternate" hreflang="en" href="https://sinaiclub.com/en/">
+<link rel="alternate" hreflang="x-default" href="https://sinaiclub.com/">
+<link rel="icon" type="image/svg+xml" href="../assets/icon.svg">
+<link rel="icon" type="image/png" sizes="32x32" href="../assets/favicon-32.png">
+<link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
+<meta property="og:title" content="SINAI Club — The app for football coaches">
+<meta property="og:description" content="A complete session in a minute and a professional plan for the month or the season, tap-to-rate players throughout training, and a Football Manager-style player card — in one app that works right on the pitch.">
+<meta property="og:image" content="https://sinaiclub.com/assets/apple-touch-icon.png">
+<meta property="og:url" content="https://sinaiclub.com/en/">
+<meta property="og:locale" content="en_US">
+<meta property="og:locale:alternate" content="he_IL">
+<script>
+/* returning users go straight into the app */
+(function(){try{
+  if(location.hash==='#site')return;
+  /* links made by the app before it moved to /app/ (parent invites ?t=…, password-reset / sign-in links) keep working */
+  if(/[?&]t=/.test(location.search)||/(access_token|type=recovery|error_code)=?/.test(location.hash)){window.__scApp=1;location.replace('../app/'+location.search+location.hash);return;}
+  var s=window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches;
+  /* the key the app's login (Supabase) keeps while someone is signed in */
+  if(s||localStorage.getItem('sb-eidcnukgvmdgwmbewfgb-auth-token')||localStorage.getItem('sc.dev')){window.__scApp=1;location.replace('../app/');}
+}catch(e){}})();
+document.documentElement.className+=' js';
+</script>
+<script id="lang-auto">
+/* language: visitors in Israel or with a Hebrew browser get the Hebrew site unless they chose English (skipped when already heading into the app) */
+if(!window.__scApp)(function(){try{var s=localStorage.getItem('sg-lang');if(s==='en')return;var il=(Intl.DateTimeFormat().resolvedOptions().timeZone||'')==='Asia/Jerusalem'||(navigator.languages||[navigator.language]).some(function(l){return /^he|^iw/i.test(l)});if(s==='he'||il){location.replace('../'+location.search+location.hash)}}catch(e){}})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Rubik:wght@500;700;800;900&family=Sora:wght@400;700&display=swap">
+<style>
+/* English (LTR) mirror of the Hebrew page. Team Blue: light hero with a pass-and-settle football over faint pitch lines → navy marquee → light bento → tossed team tiles → deep-blue security → navy close with lime CTA */
+:root{
+ --deep:#0D1F4F;--pri:#1E45B0;--bri:#4D7CF0;--tint:#E9EFFC;--sky:#DCE6FB;
+ --lime:#B9EE3E;--lime-ink:#1A2606;--lime-d:#8FC21E;
+ --up:#138A4E;
+ --bg:#F5F7FB;--sur:#fff;--line:#DEE4F0;--head:#0E1B3D;--ink:#0E1B3D;--mut:#5A6680;
+ --star:polygon(50% 0,61% 39%,100% 50%,61% 61%,50% 100%,39% 61%,0 50%,39% 39%);
+ --display:'Rubik','IBM Plex Sans',system-ui,sans-serif;--body:'IBM Plex Sans',system-ui,sans-serif;--brand:'Sora',system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;overflow-x:clip}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);line-height:1.65;-webkit-font-smoothing:antialiased;overflow-x:clip}
+a{color:inherit;text-decoration:none}
+img{max-width:100%}
+.wrap{max-width:1160px;margin:0 auto;padding-inline:20px}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0;color:var(--head)}
+.brand{display:inline-flex;align-items:center;gap:10px;direction:ltr}
+.brand img{width:34px;height:34px}
+.word{font-family:var(--brand);font-size:22px;letter-spacing:-.3px;line-height:1;color:var(--head);white-space:nowrap}
+.word b{font-weight:700}.word span{font-weight:400;color:var(--pri)}
+/* buttons */
+.btn{position:relative;overflow:hidden;display:inline-flex;align-items:center;justify-content:center;gap:8px;height:50px;padding:0 24px;border-radius:14px;font-weight:700;font-size:15.5px;border:none;cursor:pointer;transition:transform .18s,box-shadow .18s,background .18s;font-family:var(--body);white-space:nowrap}
+.btn:hover{transform:translateY(-2px)}
+.btn:focus-visible{outline:3px solid var(--bri);outline-offset:3px}
+.btn-lime{background:linear-gradient(180deg,#D3F77A,var(--lime));color:var(--lime-ink);box-shadow:0 10px 26px rgba(120,170,20,.38),inset 0 1px 0 rgba(255,255,255,.6)}
+.btn-lime:hover{box-shadow:0 14px 32px rgba(120,170,20,.48),inset 0 1px 0 rgba(255,255,255,.6)}
+.btn-lime::after{content:"";position:absolute;top:0;bottom:0;width:46%;left:-60%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.7),transparent);transform:skewX(-18deg);animation:sheen 4.6s ease-in-out 1.2s infinite}
+@keyframes sheen{0%{left:-60%}28%,100%{left:130%}}
+.btn-ghost{background:rgba(255,255,255,.78);color:var(--deep);border:1px solid var(--line);box-shadow:0 6px 18px rgba(30,69,176,.08);backdrop-filter:blur(6px)}
+.btn-ghost:hover{border-color:#BFCDEB}
+.btn-pri{background:var(--pri);color:#fff;box-shadow:0 8px 20px rgba(30,69,176,.3)}
+.btn-line{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.45)}
+.btn-line:hover{background:rgba(255,255,255,.1)}
+/* nav */
+nav{position:absolute;top:0;left:0;right:0;z-index:30}
+nav .wrap{display:flex;align-items:center;justify-content:space-between;height:74px;gap:16px}
+.links{display:flex;gap:24px;font-size:14.5px;font-weight:600;color:var(--mut)}
+.links a{transition:color .15s;white-space:nowrap}.links a:hover{color:var(--pri)}
+nav .btn{height:42px;padding:0 18px;font-size:14px}
+/* hero */
+.hero{position:relative;background:linear-gradient(160deg,#EEF3FF 0%,#FFFFFF 62%);color:var(--ink);padding:130px 0 0;overflow:hidden;isolation:isolate}
+.blob{position:absolute;border-radius:50%;pointer-events:none;z-index:0;will-change:transform}
+.blob.k1{width:620px;height:620px;right:-140px;top:-160px;background:radial-gradient(circle,rgba(77,124,240,.26),rgba(77,124,240,0) 66%);animation:driftA 22s ease-in-out infinite alternate}
+.blob.k2{width:560px;height:560px;left:-160px;bottom:-200px;background:radial-gradient(circle,rgba(30,69,176,.18),rgba(30,69,176,0) 66%);animation:driftB 26s ease-in-out infinite alternate}
+.blob.k3{width:380px;height:380px;right:30%;bottom:-120px;background:radial-gradient(circle,rgba(77,124,240,.2),rgba(77,124,240,0) 66%);animation:driftC 19s ease-in-out infinite alternate}
+.blob.k4{width:320px;height:320px;left:26%;top:-90px;background:radial-gradient(circle,rgba(185,238,62,.2),rgba(185,238,62,0) 66%);animation:driftB 24s ease-in-out infinite alternate-reverse}
+@keyframes driftA{to{transform:translate(120px,80px) scale(1.12)}}
+@keyframes driftB{to{transform:translate(-110px,-70px) scale(1.08)}}
+@keyframes driftC{to{transform:translate(90px,-90px) scale(1.15)}}
+.fx{position:absolute;inset:0;pointer-events:none;z-index:1;overflow:hidden}
+.hero .wrap{position:relative;z-index:2;display:grid;grid-template-columns:1.12fr .88fr;gap:30px;align-items:end}
+.eyebrow{display:inline-flex;align-items:center;gap:9px;background:rgba(255,255,255,.85);border:1px solid var(--line);color:var(--deep);font-weight:600;font-size:13px;padding:7px 14px;border-radius:99px;box-shadow:0 6px 18px rgba(30,69,176,.08)}
+.eyebrow i{width:7px;height:7px;border-radius:50%;background:var(--bri);box-shadow:0 0 0 4px rgba(77,124,240,.18);flex:none}
+.hero h1{font-size:clamp(30px,4.9vw,64px);line-height:1.08;letter-spacing:-.025em;font-weight:900;margin:22px 0 20px}
+.hero h1 .l1{display:block;font-size:.5em;font-weight:700;color:var(--mut);letter-spacing:-.01em;margin-bottom:.12em}
+.hero h1 .l2{display:block}
+.hero h1 em{font-style:normal;position:relative;white-space:nowrap;display:inline-block;background:linear-gradient(90deg,var(--deep),var(--bri));-webkit-background-clip:text;background-clip:text;color:transparent;padding-bottom:.04em}
+.hero h1 em::after{content:"";position:absolute;inset-inline:-.04em;bottom:.08em;height:.2em;background:linear-gradient(90deg,#C9D7F8,var(--tint));opacity:.8;border-radius:6px;z-index:-1}
+.hero h1 em::before{content:"";position:absolute;width:.24em;height:.24em;top:-.04em;right:-.14em;background:var(--lime);clip-path:var(--star);animation:tw 2.4s ease-in-out infinite}
+.lead{font-size:clamp(17px,1.6vw,20px);color:var(--mut);max-width:540px;margin:0 0 30px}
+.lead b{color:var(--head);font-weight:600}
+.ctas{display:flex;gap:12px;flex-wrap:wrap}
+.hero-copy{padding-bottom:90px;min-width:0}
+.trust{display:flex;gap:12px 20px;flex-wrap:wrap;margin-top:30px;color:var(--deep);font-size:13.5px;font-weight:600}
+.trust span{display:inline-flex;align-items:center;gap:7px}
+.phones{position:relative;height:600px;min-width:0}
+.pitch{position:absolute;z-index:0;left:50%;top:46%;width:560px;height:560px;transform:translate(-50%,-50%);opacity:.18;pointer-events:none;-webkit-mask-image:radial-gradient(closest-side,#000 55%,transparent);mask-image:radial-gradient(closest-side,#000 55%,transparent)}
+.pitch *{fill:none;stroke:var(--pri);stroke-width:2.5}
+.phone{position:absolute;width:250px;border-radius:38px;padding:9px;background:var(--head);box-shadow:0 40px 80px rgba(13,31,79,.26),0 12px 30px rgba(13,31,79,.16),0 0 0 1px rgba(255,255,255,.4)}
+.phone img{display:block;width:100%;border-radius:30px;aspect-ratio:390/844;object-fit:cover;object-position:top}
+.phone::before{content:"";position:absolute;top:17px;left:50%;transform:translateX(-50%);width:80px;height:20px;border-radius:12px;background:var(--head);z-index:2}
+.p1{left:50%;transform:translateX(-50%);bottom:-70px;z-index:3;width:270px}
+.p2{left:4%;bottom:-120px;transform:rotate(-8deg);z-index:2}
+.p3{right:2%;bottom:-120px;transform:rotate(8deg);z-index:2}
+.tag{position:absolute;z-index:4;background:#fff;color:var(--head);border-radius:14px;padding:10px 14px;box-shadow:0 16px 34px rgba(13,31,79,.16);border:1px solid var(--line);font-size:13px;font-weight:700;display:flex;align-items:center;gap:8px;white-space:nowrap;animation:bob 6s ease-in-out infinite}
+.tag .ti{width:26px;height:26px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex:none}
+.tag b{color:var(--pri)}.tag b.up{color:var(--up)}
+.t1{top:40px;left:2%}.t2{top:250px;right:-4%;animation-delay:-3s}
+@keyframes bob{50%{transform:translateY(-8px)}}
+/* the pass: a ball arcs along a dashed route and settles */
+.pass{position:absolute;z-index:5;right:-13%;top:-34px;width:240px;height:200px;pointer-events:none;transform-origin:50% 0;transform:scaleX(-1)}
+.pass svg.route{position:absolute;inset:0;width:240px;height:200px;overflow:visible}
+.route .dash{fill:none;stroke:#7F9DE6;stroke-width:2.2;stroke-dasharray:5 8;stroke-linecap:round}
+.route .trace{fill:none;stroke:var(--bri);stroke-width:2.6;stroke-linecap:round;stroke-dasharray:100;stroke-dashoffset:100;opacity:0;animation:trace 8s ease-in-out infinite}
+.route .land{fill:rgba(13,31,79,.16);transform-box:fill-box;transform-origin:center;animation:land 8s ease-in-out infinite}
+.route .stk{stroke:var(--lime-d);stroke-width:3;stroke-linecap:round;opacity:0}
+.route .s1{animation:streak1 8s ease-out infinite}
+.route .s2{animation:streak2 8s ease-out infinite}
+.ball{position:absolute;left:0;top:0;width:34px;height:34px;offset-path:path('M16 184 Q 104 -46 192 104');offset-rotate:0deg;offset-distance:0%;animation:fly 8s infinite;filter:drop-shadow(0 8px 8px rgba(13,31,79,.22))}
+.ball .bi{width:100%;height:100%;animation:spin 8s infinite}
+.ball svg{display:block;width:100%;height:100%}
+@keyframes fly{
+ 0%{offset-distance:0%;opacity:0;animation-timing-function:cubic-bezier(.33,.08,.42,1)}
+ 5%{opacity:1}
+ 52%{offset-distance:100%;opacity:1}
+ 88%{offset-distance:100%;opacity:1}
+ 96%,100%{offset-distance:100%;opacity:0}
+}
+@keyframes spin{
+ 0%{transform:rotate(0) translateY(0);animation-timing-function:cubic-bezier(.33,.08,.42,1)}
+ 52%{transform:rotate(-560deg) translateY(0);animation-timing-function:ease-out}
+ 58%{transform:rotate(-600deg) translateY(-12px);animation-timing-function:ease-in}
+ 64%{transform:rotate(-620deg) translateY(0);animation-timing-function:ease-out}
+ 68%{transform:rotate(-630deg) translateY(-4px);animation-timing-function:ease-in}
+ 72%,100%{transform:rotate(-636deg) translateY(0)}
+}
+@keyframes trace{0%{stroke-dashoffset:100;opacity:0;animation-timing-function:cubic-bezier(.33,.08,.42,1)}5%{opacity:.85}52%{stroke-dashoffset:0;opacity:.85}86%{opacity:.6}96%,100%{stroke-dashoffset:0;opacity:0}}
+@keyframes land{0%,48%{transform:scale(.3);opacity:0}54%{transform:scale(1);opacity:1}58%{transform:scale(.75)}64%{transform:scale(1)}88%{opacity:1}96%,100%{transform:scale(1);opacity:0}}
+@keyframes streak1{0%{opacity:0}3%{opacity:1}14%,100%{opacity:0}}
+@keyframes streak2{0%,51%{opacity:0}54%{opacity:1}66%,100%{opacity:0}}
+.sp{position:absolute;left:0;top:0;width:var(--s,10px);height:var(--s,10px);margin:calc(var(--s,10px)/-2) 0 0 calc(var(--s,10px)/-2);background:var(--c,var(--lime));opacity:0}
+.sp.st{clip-path:var(--star)}
+.sp.dot{border-radius:50%}
+.burst .sp{animation:pop2 1.3s ease-out forwards}
+@keyframes pop2{0%{opacity:0;transform:translate(0,0) scale(.2)}25%{opacity:1;transform:translate(calc(var(--dx)*.45),calc(var(--dy)*.45)) scale(1.1) rotate(40deg)}100%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(.3) rotate(120deg)}}
+@keyframes tw{0%,100%{transform:scale(.7) rotate(0);opacity:.7}50%{transform:scale(1.15) rotate(45deg);opacity:1}}
+/* audiences marquee */
+.ind{background:linear-gradient(90deg,var(--deep),var(--pri) 50%,var(--deep));color:#fff;overflow:hidden;padding:17px 0;position:relative}
+.marq{display:flex;width:max-content;animation:marq 48s linear infinite;font-family:var(--display);font-weight:700;font-size:19px;letter-spacing:-.01em}
+.marq span{display:inline-flex;align-items:center;gap:30px;padding-inline-end:30px;white-space:nowrap}
+.marq span::after{content:"";width:9px;height:9px;background:var(--lime);clip-path:var(--star);transform:scale(1.3)}
+.marq span:nth-child(3n+2)::after{background:#9DB8F7}
+.marq span:nth-child(3n)::after{background:#C9D7F8}
+@keyframes marq{to{transform:translateX(-50%)}}
+/* sections */
+section{padding:96px 0}
+.sh{max-width:720px;margin:0 0 48px}
+.sh.c{text-align:center;margin-inline:auto}
+.kicker{display:inline-flex;align-items:center;gap:8px;color:var(--pri);font-weight:700;font-size:13.5px;letter-spacing:.04em;margin-bottom:12px}
+.kicker::before{content:"";width:11px;height:11px;background:var(--bri);clip-path:var(--star);animation:tw 3s ease-in-out infinite}
+.sh h2{font-size:clamp(32px,4.4vw,52px);line-height:1.08;letter-spacing:-.022em;font-weight:800;margin-bottom:16px}
+.sh p{color:var(--mut);font-size:18px;margin:0}
+/* bento */
+.bento{display:grid;grid-template-columns:repeat(6,1fr);gap:16px}
+.b{background:var(--sur);border:1px solid var(--line);border-radius:22px;padding:28px;position:relative;overflow:hidden;min-width:0;transition:transform .25s,box-shadow .25s;box-shadow:0 1px 2px rgba(13,31,79,.04)}
+.b:hover{transform:translateY(-4px);box-shadow:0 22px 44px -18px rgba(30,69,176,.28)}
+.b h3{font-size:22px;letter-spacing:-.01em;margin:14px 0 8px;font-weight:700}
+.b p{margin:0;color:var(--mut);font-size:15.5px}
+.b .ic{width:48px;height:48px;border-radius:14px;background:var(--tint);display:flex;align-items:center;justify-content:center}
+.b .ic.sky{background:var(--sky)}
+.b.w4{grid-column:span 4}.b.w2{grid-column:span 2}.b.w3{grid-column:span 3}
+.b.feature{background:radial-gradient(420px 260px at 100% 100%,rgba(77,124,240,.45),transparent 70%),linear-gradient(150deg,var(--pri),var(--deep));color:#fff;border:none;box-shadow:0 24px 50px -20px rgba(30,69,176,.55)}
+.b.feature h3{color:#fff}
+.b.feature p{color:#DCE5FA}.b.feature .ic{background:rgba(255,255,255,.16)}
+.pills{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px;position:relative;z-index:1}
+.pill{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:99px;padding:6px 13px;font-size:13px;font-weight:700}
+.b .pill{background:var(--tint);border-color:transparent;color:var(--deep)}
+.b.feature .pill{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.26);color:#fff}
+.mini-pitch{position:absolute;right:0;top:0;width:300px;height:190px;opacity:.9;transform:scaleX(-1);-webkit-mask-image:linear-gradient(200deg,transparent 0%,#000 40%);mask-image:linear-gradient(200deg,transparent 0%,#000 40%)}
+.mini-pitch .ln{fill:none;stroke:rgba(255,255,255,.22);stroke-width:2}
+.mini-pitch .run{fill:none;stroke:var(--lime);stroke-width:2.6;stroke-dasharray:6 8;stroke-linecap:round}
+.mini-pitch .pl{fill:#fff}
+.mini-pitch .cn{fill:var(--lime)}
+.b.feature>*:not(.mini-pitch){position:relative;z-index:1}
+.soon{display:inline-flex;align-items:center;gap:7px;margin-top:16px;background:var(--tint);color:var(--deep);border:1px solid #C9D7F8;border-radius:10px;padding:8px 12px;font-size:13.5px;font-weight:700}
+.soon svg{flex:none}
+.attr{margin-top:18px;border:1px solid var(--line);border-radius:14px;padding:12px 14px;display:grid;gap:9px;font-size:13.5px}
+.attr div{display:grid;grid-template-columns:62px 1fr 26px 30px;align-items:center;gap:10px;font-variant-numeric:tabular-nums}
+.attr .lb{color:var(--head);font-weight:600}
+.attr .bar{height:8px;border-radius:99px;background:var(--tint);overflow:hidden}
+.attr .bar i{display:block;height:100%;border-radius:99px;background:linear-gradient(270deg,var(--bri),var(--pri))}
+.attr .v{font-family:var(--brand);font-weight:700;color:var(--head);text-align:center}
+.attr .d{font-family:var(--brand);font-weight:700;color:var(--up);font-size:12.5px;direction:ltr;text-align:right}
+/* fit + tossed tiles */
+.fit{display:grid;grid-template-columns:1fr 1.05fr;gap:56px;align-items:center}
+.fit h2{font-size:clamp(30px,4vw,48px);line-height:1.08;letter-spacing:-.02em;font-weight:800;margin-bottom:16px}
+.toss{position:relative;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px 12px;padding:18px 6px}
+.toss::before{content:"";position:absolute;inset:6% 4%;border-radius:40px;background:radial-gradient(closest-side,rgba(77,124,240,.14),transparent);z-index:-1}
+.tile{transform:translate(var(--jx,0),var(--jy,0)) rotate(var(--r,0deg));z-index:var(--z,1);position:relative}
+.face{height:100%;min-height:118px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:9px;text-align:center;padding:14px 8px 12px;border-radius:20px;background:var(--tb,var(--tint));border:1px solid rgba(255,255,255,.9);box-shadow:0 14px 26px -12px var(--tsh,rgba(30,69,176,.4)),0 2px 4px rgba(13,31,79,.05);font-weight:700;font-size:14.5px;line-height:1.25;color:var(--head);transition:transform .25s cubic-bezier(.3,1.6,.5,1),box-shadow .25s}
+.face:hover{transform:translateY(-7px) rotate(calc(var(--r,0deg) * -.6)) scale(1.04);box-shadow:0 24px 34px -14px var(--tsh,rgba(30,69,176,.5))}
+.face .ico{width:46px;height:46px;border-radius:14px;background:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 10px -4px var(--tsh,rgba(30,69,176,.4))}
+.face svg{width:26px;height:26px;fill:none;stroke:var(--tc,var(--pri));stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.c-a{--tb:linear-gradient(160deg,#EEF3FD,#E0E9FB);--tc:#1E45B0;--tsh:rgba(30,69,176,.38)}
+.c-b{--tb:linear-gradient(160deg,#E7EEFE,#D3E0FC);--tc:#2F5BD0;--tsh:rgba(77,124,240,.42)}
+.c-c{--tb:linear-gradient(160deg,#F2F5FB,#E3E9F4);--tc:#0D1F4F;--tsh:rgba(13,31,79,.3)}
+.c-d{--tb:linear-gradient(160deg,#EDF1FA,#DCE4F6);--tc:#4D7CF0;--tsh:rgba(77,124,240,.36)}
+.tile.more{grid-column:2 / span 2}
+.tile.more .face{min-height:64px;flex-direction:row;background:#fff;border:2px dashed #AFC2EE;color:var(--deep);font-size:16px;box-shadow:none}
+.tile.more .ico{width:34px;height:34px;border-radius:50%;background:var(--lime);box-shadow:0 6px 14px -4px rgba(120,170,20,.6)}
+.tile.more svg{stroke:var(--lime-ink);stroke-width:2.6;width:18px;height:18px}
+.js .toss .tile{opacity:0}
+.toss.in .tile{animation:toss 1.15s cubic-bezier(.22,.75,.3,1) calc(var(--i,0) * 80ms) both}
+@keyframes toss{
+ 0%{opacity:0;transform:translate(calc(var(--jx,0px) + var(--fx,0px) * .35),calc(var(--jy,0px) - 460px)) rotate(var(--fr,0deg)) scale(1.1)}
+ 14%{opacity:1}
+ 60%{transform:translate(var(--jx,0px),calc(var(--jy,0px) + 16px)) rotate(calc(var(--r,0deg) * -.7)) scale(.98)}
+ 76%{transform:translate(var(--jx,0px),calc(var(--jy,0px) - 10px)) rotate(calc(var(--r,0deg) * 1.3)) scale(1.01)}
+ 89%{transform:translate(var(--jx,0px),calc(var(--jy,0px) + 3px)) rotate(calc(var(--r,0deg) * .9))}
+ 100%{opacity:1;transform:translate(var(--jx,0px),var(--jy,0px)) rotate(var(--r,0deg)) scale(1)}
+}
+.ticks{list-style:none;padding:0;margin:20px 0 0;display:grid;gap:12px}
+.ticks li{display:flex;gap:11px;align-items:flex-start;font-size:16px;color:var(--head)}
+.ticks li::before{content:"";flex:none;width:22px;height:22px;margin-top:2px;border-radius:50%;background:var(--tint) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 12.5l4 4 8-9' fill='none' stroke='%231E45B0' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/14px no-repeat}
+/* split */
+.split{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:center}
+.split.rev .txt{order:2}
+.txt h2{font-size:clamp(30px,3.6vw,44px);line-height:1.1;letter-spacing:-.02em;font-weight:800;margin-bottom:16px}
+.txt p{color:var(--mut);font-size:17px;margin:0}
+.shot{display:flex;justify-content:center;position:relative}
+.shot .phone{position:relative;width:280px}
+.shot::before{content:"";position:absolute;width:420px;height:420px;max-width:110%;border-radius:50%;background:radial-gradient(circle at 40% 40%,rgba(77,124,240,.28),transparent 62%),radial-gradient(circle at 70% 70%,rgba(185,238,62,.22),transparent 58%);top:50%;left:50%;transform:translate(-50%,-50%)}
+.split.rev .shot::before{background:radial-gradient(circle at 40% 40%,rgba(30,69,176,.18),transparent 62%),radial-gradient(circle at 70% 65%,rgba(77,124,240,.3),transparent 58%)}
+/* parents */
+.par{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.pc{background:#fff;border:1px solid var(--line);border-radius:22px;padding:26px;transition:transform .25s,box-shadow .25s}
+.pc:hover{transform:translateY(-4px);box-shadow:0 20px 40px -18px rgba(30,69,176,.3)}
+.pc .ic{width:48px;height:48px;border-radius:14px;background:var(--tint);display:flex;align-items:center;justify-content:center;margin-bottom:14px}
+.pc h3{font-size:19px;margin-bottom:6px}.pc p{margin:0;color:var(--mut);font-size:15px}
+/* security */
+.sec{background:radial-gradient(500px 300px at 0% 0%,rgba(77,124,240,.5),transparent 70%),linear-gradient(140deg,var(--deep) 0%,var(--pri) 100%);color:#fff;border-radius:32px;padding:56px;display:grid;grid-template-columns:.9fr 1.1fr;gap:48px;align-items:center;position:relative;overflow:hidden;box-shadow:0 30px 60px -28px rgba(13,31,79,.6)}
+.sec h2{font-size:clamp(30px,3.6vw,44px);line-height:1.1;font-weight:800;margin:0 0 14px;color:#fff}
+.sec p{color:#D5DFF7;margin:0;font-size:17px}
+.sec .kicker{color:#B8CBFA}.sec .kicker::before{background:var(--lime)}
+.sec>div{position:relative;z-index:1}.sec .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.sec .it{background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.18);border-radius:18px;padding:20px;transition:background .2s}
+.sec .it:hover{background:rgba(255,255,255,.14)}
+.sec .it b{display:block;font-size:16px;margin-bottom:4px}
+.sec .it span{color:#CBD7F5;font-size:14.5px}
+.shield{position:absolute;z-index:0;right:-60px;bottom:-80px;width:280px;opacity:.08}
+/* setup */
+.setup h2.big{font-size:clamp(40px,7vw,92px);line-height:1.02;letter-spacing:-.03em;font-weight:900;margin:0 0 44px}
+.setup h2.big span{display:block}
+.setup h2.big span+span{color:var(--pri);background:linear-gradient(90deg,var(--bri),var(--pri));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;width:fit-content;padding-bottom:.06em}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.step{background:#fff;border:1px solid var(--line);border-radius:22px;padding:26px;transition:transform .25s,box-shadow .25s}
+.step:hover{transform:translateY(-4px);box-shadow:0 20px 40px -18px rgba(30,69,176,.3)}
+.step .n{font-family:var(--brand);font-weight:700;font-size:15px;color:var(--pri);background:var(--tint);border-radius:10px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;margin-bottom:14px}
+.step:nth-child(2) .n{background:var(--sky);color:var(--deep)}.step:nth-child(3) .n{background:var(--pri);color:#fff}
+.step h3{font-size:19px;margin-bottom:6px}.step p{margin:0;color:var(--mut);font-size:15px}
+/* cta */
+.cta{position:relative;overflow:hidden;background:radial-gradient(420px 260px at 90% 0%,rgba(77,124,240,.55),transparent 70%),radial-gradient(300px 200px at 5% 100%,rgba(185,238,62,.14),transparent 70%),linear-gradient(135deg,var(--deep),#16348A);color:#fff;border-radius:32px;padding:56px;display:flex;align-items:center;justify-content:space-between;gap:28px;flex-wrap:wrap;box-shadow:0 30px 60px -28px rgba(13,31,79,.7)}
+.cta>div{position:relative;z-index:1}
+.cta h2{font-size:clamp(28px,3.6vw,44px);line-height:1.1;font-weight:800;margin:0 0 8px;color:#fff}
+.cta p{margin:0;font-size:17px;color:#D5DFF7}
+.cta .deco{position:absolute;background:var(--lime);clip-path:var(--star);opacity:.85;animation:tw 3s ease-in-out infinite;pointer-events:none}
+.mail{font-family:var(--brand);font-weight:700;direction:ltr;unicode-bidi:isolate}
+footer{padding:40px 0 56px;color:var(--mut);font-size:14px}
+footer .wrap{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
+@media (prefers-reduced-motion:reduce){
+ .marq,.blob,.tag,.btn-lime::after,.kicker::before,.hero h1 em::before,.cta .deco,.ball,.ball .bi,.route .trace,.route .land,.route .stk{animation:none!important}
+ .ball{offset-distance:100%;opacity:1}
+ .route .trace{stroke-dashoffset:0;opacity:.85}
+ .route .stk{opacity:0}
+ .btn-lime::after{display:none}
+ .js .toss .tile{opacity:1}.toss.in .tile{animation:none}
+ .face,.b,.step,.pc,.btn{transition:none}
+}
+@media (max-width:1100px){.links{display:none}}
+@media (max-width:980px){
+ .hero .wrap,.fit,.split,.sec{grid-template-columns:1fr}
+ .split.rev .txt{order:0}
+ .hero-copy{padding-bottom:20px}
+ .phones{height:520px}
+ .bento{grid-template-columns:1fr 1fr}
+ .b.w4,.b.w3,.b.w2{grid-column:span 2}
+ .steps,.par{grid-template-columns:1fr}
+ .sec{padding:40px 28px}
+ .pass{right:2%;top:-24px}
+}
+@media (max-width:560px){
+ .hero{padding-top:104px}
+ .hero h1{font-size:min(9.2vw,40px)}
+ .phones{height:440px}
+ .pitch{width:420px;height:420px}
+ .phone{width:200px}.p1{width:220px}
+ .p2{left:-14%}.p3{right:-14%}
+ .t2{display:none}.t1{left:0;top:10px}
+ .pass{right:-2%;top:-10px;transform-origin:100% 0;transform:translateX(-62%) scale(-.62,.62)}
+ section{padding:68px 0}
+ .sec .grid{grid-template-columns:1fr}
+ .cta{padding:36px 24px}
+ .cta .deco:nth-of-type(3){display:none}
+ nav .btn-ghost{display:none}
+ .word{font-size:20px}.brand img{width:30px;height:30px}
+ .b{padding:22px}
+ .mini-pitch{opacity:.35;width:220px;height:140px}
+ .toss{grid-template-columns:repeat(3,minmax(0,1fr));gap:12px 9px;padding:10px 2px}
+ .tile{transform:translate(calc(var(--jx,0px) * .4),calc(var(--jy,0px) * .5)) rotate(calc(var(--r,0deg) * .55))}
+ .tile.more{grid-column:1 / -1}
+ .face{min-height:104px;font-size:13px;padding:12px 4px 10px;border-radius:16px}
+ .face .ico{width:40px;height:40px;border-radius:12px}
+ .face svg{width:23px;height:23px}
+ @keyframes toss{
+  0%{opacity:0;transform:translate(calc(var(--jx,0px) * .4),-420px) rotate(var(--fr,0deg))}
+  14%{opacity:1}
+  60%{transform:translate(calc(var(--jx,0px) * .4),calc(var(--jy,0px) * .5 + 12px)) rotate(calc(var(--r,0deg) * -.4))}
+  78%{transform:translate(calc(var(--jx,0px) * .4),calc(var(--jy,0px) * .5 - 7px)) rotate(calc(var(--r,0deg) * .75))}
+  100%{opacity:1;transform:translate(calc(var(--jx,0px) * .4),calc(var(--jy,0px) * .5)) rotate(calc(var(--r,0deg) * .55))}
+ }
+}
+
+.b.w6{grid-column:span 6}
+.fmrow{display:grid;grid-template-columns:1fr 1.25fr;gap:34px;align-items:center}
+.fmtxt h3{margin-top:14px}
+.fmm{background:radial-gradient(380px 220px at 0% 0%,rgba(77,124,240,.35),transparent 70%),linear-gradient(160deg,#16296A,var(--deep));color:#fff;border-radius:18px;padding:18px;box-shadow:0 24px 50px -24px rgba(13,31,79,.6);min-width:0}
+.fmh{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.fmh div{display:flex;flex-direction:column;flex:1;min-width:0}.fmh b{font-size:17px}.fmh span{font-size:12.5px;color:#B8C6EE}
+.fav{width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.12);display:grid;place-items:center;font-weight:700;font-size:14px;flex:none}
+.fsh{font-family:var(--brand);font-weight:700;font-size:20px;color:#fff;opacity:.9}
+.fmg{display:grid;grid-template-columns:repeat(3,1fr);gap:4px 14px}
+.fmc h5{margin:0 0 6px;font-size:11.5px;letter-spacing:.08em;color:#9DB8F7;font-weight:700}
+.fmc div{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:4px 8px;border-radius:6px;font-size:13px;color:#E6ECFB}
+.fmc div:nth-of-type(odd){background:rgba(255,255,255,.06)}
+.fmc b{font-family:var(--brand);font-weight:700;font-size:13.5px;font-variant-numeric:tabular-nums}
+.fmm .v4{color:#5BE39A}.fmm .v3{color:#fff}.fmm .v2{color:#F5B84A}.fmm .v1{color:#FF7A70}
+.fmf{display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,.14);font-size:12.5px;color:#B8C6EE}
+.fmf b{color:#fff;font-weight:600}.fmf .st{color:#9DB8F7;letter-spacing:1px}.fmf .st i{font-style:normal;color:rgba(255,255,255,.22)}
+@media (max-width:980px){.fmrow{grid-template-columns:1fr}.b.w6{grid-column:span 2}}
+@media (max-width:560px){.fmg{grid-template-columns:1fr 1fr}.fmm{padding:14px}}
+/* language switch */
+.lang{display:inline-flex;align-items:center;gap:6px;height:42px;padding:0 12px;border-radius:12px;font-size:14px;font-weight:700;color:var(--deep);white-space:nowrap;transition:color .15s,background .15s}
+.lang:hover{color:var(--pri);background:rgba(255,255,255,.7)}
+.lang svg{flex:none}
+</style>
+</head>
+<body>
+<nav><div class="wrap">
+ <a href="#" class="brand" aria-label="SINAI Club"><img src="../assets/icon.svg" alt=""><span class="word"><b>SINAI</b><span> Club</span></span></a>
+ <div class="links"><a href="#features">Features</a><a href="#fit">Every club</a><a href="#managers">Club managers</a><a href="#parents">Parents</a><a href="#security">Security</a><a href="#setup">Setup</a></div>
+ <div style="display:flex;gap:8px;align-items:center"><a class="lang" href="../" hreflang="he" lang="he" onclick="try{localStorage.setItem('sg-lang','he')}catch(e){}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3z"/></svg>עברית</a><a class="btn btn-ghost" href="#contact">Book a demo</a><a class="btn btn-lime" href="../app/">Sign in</a></div>
+</div></nav>
+
+<header class="hero">
+ <div class="blob k1"></div><div class="blob k2"></div><div class="blob k3"></div><div class="blob k4"></div>
+ <div class="fx" id="fx" aria-hidden="true"></div>
+ <div class="wrap">
+  <div class="hero-copy">
+   <span class="eyebrow"><i></i>The app for football coaches and football schools</span>
+   <h1><span class="l1">Coach,</span><span class="l2">your next session is already <em>ready</em>.</span></h1>
+   <p class="lead">Build a complete session <b>in a minute</b>, for any length and any age, plus a professional plan for the month or the season built around what matters to you. Rate players with a tap throughout training, and every kid gets a <b>player card</b> that updates from session to session.</p>
+   <div class="ctas"><a class="btn btn-lime" href="#contact">Book a demo</a><a class="btn btn-ghost" href="../app/">Sign in</a></div>
+   <div class="trust">
+    <span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1E45B0" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M4 20.5A2.5 2.5 0 0 0 6.5 23H20v-5"/><path d="M9 8h7M9 12h5"/></svg>Drill library built on La Masia methods</span>
+    <span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1E45B0" stroke-width="2.2" stroke-linecap="round"><path d="M2 8.8a15 15 0 0 1 20 0M5 12.6a10 10 0 0 1 14 0M8.5 16.4a5 5 0 0 1 7 0"/><path d="M3 3l18 18"/></svg>Works offline on the pitch</span>
+    <span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1E45B0" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8.5" cy="8" r="3"/><circle cx="16.5" cy="9.5" r="2.4"/><path d="M3 20c0-3.3 2.5-5.6 5.5-5.6S14 16.7 14 20M15 14.6c3 0 5.5 1.9 5.5 5.4"/></svg>Parents and players connected</span>
+   </div>
+  </div>
+  <div class="phones" aria-hidden="true">
+   <svg class="pitch" viewBox="0 0 560 560"><line x1="0" y1="280" x2="560" y2="280"/><circle cx="280" cy="280" r="86"/><circle cx="280" cy="280" r="4" style="fill:#1E45B0"/></svg>
+   <div class="phone p2"><img src="../assets/plan.webp" alt=""></div>
+   <div class="phone p3"><img src="../assets/match.webp" alt=""></div>
+   <div class="phone p1"><img src="../assets/card.webp" alt="" loading="eager"></div>
+   <div class="tag t1"><span class="ti" style="background:var(--tint)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1E45B0" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.4 2.7-6 6-6s6 2.6 6 6"/><path d="M15.5 11.5l2 2 4-4.5"/></svg></span><span><b>14/16</b> at training</span></div>
+   <div class="tag t2"><span class="ti" style="background:#E3F5EA"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#138A4E" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg></span><span>Rating saved · <b class="up">+3</b> Dribbling</span></div>
+   <div class="pass" id="pass">
+    <svg class="route" viewBox="0 0 240 200">
+     <path class="dash" d="M16 184 Q 104 -46 192 104"/>
+     <path class="trace" pathLength="100" d="M16 184 Q 104 -46 192 104"/>
+     <ellipse class="land" cx="192" cy="122" rx="15" ry="4"/>
+     <g class="stk s1"><line x1="2" y1="176" x2="-12" y2="186"/><line x1="10" y1="196" x2="-6" y2="204"/><line x1="-4" y1="164" x2="-16" y2="170"/></g>
+     <g class="stk s2"><line x1="214" y1="98" x2="226" y2="92"/><line x1="216" y1="112" x2="230" y2="112"/><line x1="170" y1="98" x2="160" y2="92"/></g>
+    </svg>
+    <div class="ball"><div class="bi"><svg viewBox="-1 -1 46 46"><defs><clipPath id="bc"><circle cx="22" cy="22" r="20"/></clipPath><radialGradient id="bs" cx=".35" cy=".3" r=".8"><stop offset=".55" stop-color="#fff"/><stop offset="1" stop-color="#D4DDEF"/></radialGradient></defs><circle cx="22" cy="22" r="20" fill="url(#bs)"/><g clip-path="url(#bc)" fill="#0D1F4F" stroke="#0D1F4F" stroke-width="1.2" stroke-linejoin="round"><polygon points="22.0,15.0 28.7,19.8 26.1,27.7 17.9,27.7 15.3,19.8"/><polygon points="22.0,8.5 15.8,4.0 18.2,-3.3 25.8,-3.3 28.2,4.0"/><polygon points="34.8,17.8 37.2,10.6 44.8,10.6 47.2,17.8 41.0,22.3"/><polygon points="29.9,32.9 37.6,32.9 39.9,40.2 33.8,44.7 27.6,40.2"/><polygon points="14.1,32.9 16.4,40.2 10.2,44.7 4.1,40.2 6.4,32.9"/><polygon points="9.2,17.8 3.0,22.3 -3.2,17.8 -0.8,10.6 6.8,10.6"/><path fill="none" d="M22 15V8.5M28.7 19.8l6.1-2M26.1 27.7l3.8 5.2M17.9 27.7l-3.8 5.2M15.3 19.8l-6.1-2"/></g><circle cx="22" cy="22" r="20" fill="none" stroke="#0D1F4F" stroke-width="1.6"/></svg></div></div>
+   </div>
+  </div>
+ </div>
+</header>
+
+<div class="ind" aria-label="Who it's for"><div class="marq" id="marq">
+ <span>Kindergarten</span><span>1st–2nd grade</span><span>3rd–4th grade</span><span>5th–7th grade</span><span>Youth</span><span>Football schools</span><span>Clubs</span><span>Academies</span><span>Kids' leagues</span><span>Community centers</span><span>Private coaches</span><span>Girls' teams</span>
+ <span aria-hidden="true">Kindergarten</span><span aria-hidden="true">1st–2nd grade</span><span aria-hidden="true">3rd–4th grade</span><span aria-hidden="true">5th–7th grade</span><span aria-hidden="true">Youth</span><span aria-hidden="true">Football schools</span><span aria-hidden="true">Clubs</span><span aria-hidden="true">Academies</span><span aria-hidden="true">Kids' leagues</span><span aria-hidden="true">Community centers</span><span aria-hidden="true">Private coaches</span><span aria-hidden="true">Girls' teams</span>
+ <span aria-hidden="true">Kindergarten</span><span aria-hidden="true">1st–2nd grade</span><span aria-hidden="true">3rd–4th grade</span><span aria-hidden="true">5th–7th grade</span><span aria-hidden="true">Youth</span><span aria-hidden="true">Football schools</span><span aria-hidden="true">Clubs</span><span aria-hidden="true">Academies</span><span aria-hidden="true">Kids' leagues</span><span aria-hidden="true">Community centers</span><span aria-hidden="true">Private coaches</span><span aria-hidden="true">Girls' teams</span>
+ <span aria-hidden="true">Kindergarten</span><span aria-hidden="true">1st–2nd grade</span><span aria-hidden="true">3rd–4th grade</span><span aria-hidden="true">5th–7th grade</span><span aria-hidden="true">Youth</span><span aria-hidden="true">Football schools</span><span aria-hidden="true">Clubs</span><span aria-hidden="true">Academies</span><span aria-hidden="true">Kids' leagues</span><span aria-hidden="true">Community centers</span><span aria-hidden="true">Private coaches</span><span aria-hidden="true">Girls' teams</span>
+</div></div>
+
+<section id="features"><div class="wrap">
+ <div class="sh"><div class="kicker">Features</div><h2>Everything that happens on the pitch — in one app.</h2><p>SINAI Club was built on the pitch, together with coaches, around what really happens at training — not around spreadsheets in an office.</p></div>
+ <div class="bento">
+  <div class="b w4 feature">
+   <svg class="mini-pitch" viewBox="0 0 300 190" aria-hidden="true"><line class="ln" x1="236" y1="0" x2="236" y2="190"/><circle class="ln" cx="236" cy="86" r="42"/><path class="ln" d="M0 40h46v92H0"/><path class="run" d="M34 150 C 70 150, 90 110, 120 100 S 170 70, 200 34"/><circle class="pl" cx="34" cy="150" r="6"/><circle class="pl" cx="120" cy="100" r="6"/><circle class="pl" cx="200" cy="34" r="6"/><path class="cn" d="M84 62l5-11 5 11z"/><path class="cn" d="M160 140l5-11 5 11z"/></svg>
+   <div class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4.5" y="4" width="15" height="17" rx="2.5"/><path d="M9 4V2.8h6V4"/><path d="M8 9l2.2 2.2M10.2 9L8 11.2"/><circle cx="15.5" cy="16" r="1.6"/><path d="M10 14c1.2 2 2.4 2.4 3.6 2.2"/></svg></div>
+   <h3>Professional session planning: for a session, a month, a season</h3>
+   <p style="max-width:470px">Want to focus on finishing for the next month? Pick a topic and a duration, and get a plan in stages: teach, practise, apply it in the game, and a test at the end. Drills rotate, and every session also keeps another topic in the mix so the rest of the skills don't slip. You can also build a season plan with a topic for every week.</p>
+   <div class="pills"><span class="pill">Focused monthly plan</span><span class="pill">Season plan</span><span class="pill">Any session length</span><span class="pill">A diagram for every drill</span><span class="pill">Shared folder</span></div>
+  </div>
+  <div class="b w2">
+   <div class="ic sky"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1E45B0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.4 6.8 19.1l1-5.8L3.5 9.2l5.9-.9z"/></svg></div>
+   <h3>Tap-to-rate, all session long</h3>
+   <p>In every drill and the closing game: a quick tag, a score for an attribute, or a quick round that rates the whole team on exactly what the drill trains. Timed tests go onto the card too.</p>
+  </div>
+  <div class="b w6 fmrow">
+   <div class="fmtxt">
+    <div class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1E45B0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M7 9h4M7 13h10M7 17h7"/></svg></div>
+    <h3>A player card, just like Football Manager</h3>
+    <p>Every rating adds up to a 1–20 profile across technical, mental and physical attributes, with a monthly trend, position, preferred foot and weak foot. See exactly who is improving, and at what.</p>
+    <ul class="ticks"><li>Attributes are age-appropriate: kindergarten looks different from youth</li><li>The club decides whether parents and kids see the numbers</li><li>Values based on only a few observations are flagged, so no decisions are made on a guess</li></ul>
+   </div>
+   <div class="fmm" aria-hidden="true">
+     <div class="fmh"><span class="fav">NL</span><div><b>Noam Levi</b><span>Striker · 12 · 5th–6th grade</span></div><span class="fsh">#9</span></div>
+     <div class="fmg"><div class="fmc"><h5>TECHNICAL</h5><div><span>Passing</span><b class="v3">15</b></div><div><span>Dribbling</span><b class="v4">17</b></div><div><span>Shooting</span><b class="v3">13</b></div><div><span>First touch</span><b class="v3">14</b></div><div><span>Heading</span><b class="v2">9</b></div><div><span>Long passing</span><b class="v3">11</b></div><div><span>Tackling</span><b class="v2">8</b></div></div><div class="fmc"><h5>MENTAL</h5><div><span>Decisions</span><b class="v3">14</b></div><div><span>Concentration</span><b class="v3">12</b></div><div><span>Teamwork</span><b class="v4">16</b></div><div><span>Determination</span><b class="v4">18</b></div><div><span>Leadership</span><b class="v2">10</b></div></div><div class="fmc"><h5>PHYSICAL</h5><div><span>Pace</span><b class="v4">16</b></div><div><span>Agility</span><b class="v3">15</b></div><div><span>Strength</span><b class="v2">10</b></div><div><span>Stamina</span><b class="v3">13</b></div></div></div>
+     <div class="fmf"><span>Preferred foot <b>Right</b></span><span>Weak foot <b class="st">★★★<i>★★</i></b></span><span>Monthly trend <b class="v4">▲ Dribbling +2</b></span></div>
+    </div>
+  </div>
+  <div class="b w3">
+   <div class="ic sky"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1E45B0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h14l-3.5-3.5M20 16H6l3.5 3.5"/></svg></div>
+   <h3>The closing game in one click</h3>
+   <p>Automatic split into balanced teams or pick them yourself, the score, and ratings — all without leaving the pitch.</p>
+   <div class="pills"><span class="pill">Balanced teams</span><span class="pill">Score</span><span class="pill">Match rating for every player</span></div>
+  </div>
+  <div class="b w3">
+   <div class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1E45B0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 6l1.5 1.5L8 4.5M3.5 12l1.5 1.5L8 10.5M3.5 18l1.5 1.5L8 16.5M11.5 6h9M11.5 12h9M11.5 18h9"/></svg></div>
+   <h3>Attendance and parent communication</h3>
+   <p>Take attendance with a tap, and send ready-made messages to parents and the team — written from the data and sent via WhatsApp in one click.</p>
+  </div>
+  <div class="b w3">
+   <div class="ic sky"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1E45B0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9 16H3z"/><path d="M12 10v4M12 17h.01"/></svg></div>
+   <h3>An alert before a kid drops out</h3>
+   <p>A kid who misses two sessions in a row is flagged for the coach, along with who's back after an absence and who's injured. So you can step in early, before they quietly disappear from the team.</p>
+  </div>
+  <div class="b w3">
+   <div class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1E45B0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c1 3.5 5 5.5 5 10a5 5 0 0 1-10 0c0-2.4 1.2-3.8 2.5-5 .3 1.6 1 2.6 2 3 .3-3-.5-5.5.5-8z"/></svg></div>
+   <h3>Motivation that comes from effort</h3>
+   <p>Personal goals for every player and attributes that improve from session to session — rewarding hard work and progress, not just talent.</p>
+   <span class="soon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1E45B0" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Coming soon: XP and video challenges with friends, plus club registration and payments</span>
+  </div>
+ </div></section>
+
+<section id="fit" style="padding-top:20px"><div class="wrap fit">
+ <div>
+  <div class="kicker">For every club</div>
+  <h2>Every age, every team,<br>every way of working.</h2>
+  <p style="color:var(--mut);font-size:17px;margin:0">SINAI Club adapts to your team: a profile by age and by league (or no league at all), session length, the attributes you rate, and roles — coach, manager, player and parent.</p>
+  <ul class="ticks"><li>Team profile by age and league</li><li>Session length and templates set by the club</li><li>A training plan by topic and week, built automatically</li></ul>
+ </div>
+ <div class="toss" id="toss" role="list" aria-label="Example settings">
+  <div class="tile" role="listitem" style="--i:0;--jx:4px;--jy:6px;--r:-6deg;--fx:-160px;--fr:-50deg;--z:2"><div class="face c-a"><span class="ico"><svg viewBox="0 0 24 24"><rect x="3.5" y="13" width="7.5" height="7.5" rx="1.5"/><rect x="13" y="13" width="7.5" height="7.5" rx="1.5"/><rect x="8.25" y="4" width="7.5" height="7.5" rx="1.5"/></svg></span>Kindergarten &amp; early years</div></div>
+  <div class="tile" role="listitem" style="--i:3;--jx:-6px;--jy:-4px;--r:5deg;--fx:120px;--fr:40deg;--z:3"><div class="face c-b"><span class="ico"><svg viewBox="0 0 24 24"><path d="M4 20.5V10l8-5 8 5v10.5"/><path d="M2 20.5h20"/><path d="M10 20.5V16h4v4.5"/><path d="M12 5V1.8l3.2 1.1L12 4"/><circle cx="12" cy="11.5" r="1.8"/></svg></span>Football schools</div></div>
+  <div class="tile" role="listitem" style="--i:1;--jx:3px;--jy:10px;--r:-3deg;--fx:-90px;--fr:-30deg;--z:1"><div class="face c-c"><span class="ico"><svg viewBox="0 0 24 24"><path d="M12 3l7.5 2.6V11c0 4.7-3.1 8.1-7.5 10-4.4-1.9-7.5-5.3-7.5-10V5.6z"/><path d="M4.6 10h14.8"/><path d="M12 13l1 2 2.2.3-1.6 1.5.4 2.2-2-1-2 1 .4-2.2-1.6-1.5 2.2-.3z"/></svg></span>Clubs</div></div>
+  <div class="tile" role="listitem" style="--i:5;--jx:-4px;--jy:-2px;--r:8deg;--fx:180px;--fr:60deg;--z:2"><div class="face c-d"><span class="ico"><svg viewBox="0 0 24 24"><path d="M2 9.5l10-5 10 5-10 5z"/><path d="M6 11.5v5c0 1.5 2.7 3 6 3s6-1.5 6-3v-5"/><path d="M22 9.5v5"/></svg></span>Academies</div></div>
+  <div class="tile" role="listitem" style="--i:2;--jx:8px;--jy:-8px;--r:4deg;--fx:-200px;--fr:35deg;--z:3"><div class="face c-b"><span class="ico"><svg viewBox="0 0 24 24"><path d="M7 3.5h10V9a5 5 0 0 1-10 0z"/><path d="M7 5.5H4a3.2 3.2 0 0 0 3.2 4.2M17 5.5h3a3.2 3.2 0 0 1-3.2 4.2"/><path d="M12 14v4M8 21h8M9.5 18h5"/></svg></span>Kids' leagues</div></div>
+  <div class="tile" role="listitem" style="--i:7;--jx:-2px;--jy:6px;--r:-8deg;--fx:60px;--fr:-70deg;--z:1"><div class="face c-a"><span class="ico"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.4"/><path d="M16 14.2c2.8.3 5 2.6 5 5.8"/></svg></span>Youth teams</div></div>
+  <div class="tile" role="listitem" style="--i:4;--jx:5px;--jy:2px;--r:6deg;--fx:-120px;--fr:45deg;--z:2"><div class="face c-d"><span class="ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="7.5" r="3.5"/><path d="M15.2 6c2 .2 3 2.2 2.3 4.3"/><path d="M5.5 21c0-3.6 2.9-6.5 6.5-6.5s6.5 2.9 6.5 6.5"/></svg></span>Girls' teams</div></div>
+  <div class="tile" role="listitem" style="--i:9;--jx:-7px;--jy:-6px;--r:-4deg;--fx:150px;--fr:-40deg;--z:3"><div class="face c-c"><span class="ico"><svg viewBox="0 0 24 24"><path d="M3 9.5l9-6 9 6"/><path d="M5 21V9.5M19 21V9.5M2.5 21h19"/><path d="M9.5 21v-6h5v6"/><path d="M8 11.5h1.5M14.5 11.5H16"/></svg></span>Community centers</div></div>
+  <div class="tile" role="listitem" style="--i:6;--jx:6px;--jy:4px;--r:-7deg;--fx:-170px;--fr:-55deg;--z:1"><div class="face c-a"><span class="ico"><svg viewBox="0 0 24 24"><circle cx="9" cy="14.5" r="5.5"/><path d="M9 9h12v4.5h-6.5"/><circle cx="9" cy="14.5" r="1.5"/><path d="M5.5 10.2L4 4"/></svg></span>Private coaches</div></div>
+  <div class="tile" role="listitem" style="--i:10;--jx:-3px;--jy:-4px;--r:5deg;--fx:90px;--fr:50deg;--z:2"><div class="face c-b"><span class="ico"><svg viewBox="0 0 24 24"><path d="M2 19.5V6h20v13.5"/><path d="M2 6l3 3.5h14L22 6M5 9.5v10M19 9.5v10M9.7 9.5v10M14.3 9.5v10M5 14.5h14"/></svg></span>Goalkeepers</div></div>
+  <div class="tile" role="listitem" style="--i:8;--jx:4px;--jy:8px;--r:-5deg;--fx:-140px;--fr:-35deg;--z:3"><div class="face c-d"><span class="ico"><svg viewBox="0 0 24 24"><path d="M9.5 3.5h5l4 15.5h-13z"/><path d="M8 10h8M6.8 14.5h10.4"/><path d="M3 20.5h18"/></svg></span>Fitness training</div></div>
+  <div class="tile" role="listitem" style="--i:11;--jx:-5px;--jy:2px;--r:7deg;--fx:170px;--fr:65deg;--z:1"><div class="face c-c"><span class="ico"><svg viewBox="0 0 24 24"><path d="M3 20.5L12 5l9 15.5z"/><path d="M9.3 20.5L12 15l2.7 5.5"/><path d="M12 5V2.5l2.8 1-2.8 1"/><path d="M1.5 20.5h21"/></svg></span>Team-building days</div></div>
+  <div class="tile more" role="listitem" style="--i:12;--jx:0px;--jy:6px;--r:-2deg;--fx:0px;--fr:-20deg;--z:2"><div class="face"><span class="ico"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></span>Any other setup</div></div>
+ </div>
+</div></section>
+
+<section style="padding-top:20px"><div class="wrap split">
+ <div class="txt">
+  <div class="kicker">For coaches</div>
+  <h2>Less paperwork on the bench.<br>More time with the ball.</h2>
+  <p>The session is planned in advance, attendance takes a tap, and ratings are saved as you go. By the end of training you have the full picture — without spending the evening in front of a spreadsheet.</p>
+  <ul class="ticks"><li>A ready-made drill library by age, with diagrams and animated demos</li><li>A focused monthly plan: one topic, in stages, with a test at the end</li><li>Team report: what to train next week and who has improved</li></ul>
+ </div>
+ <div class="shot"><div class="phone"><img src="../assets/plan.webp" alt="A training plan in SINAI Club" loading="lazy"></div></div>
+</div></section>
+
+<section id="managers" style="padding-top:20px"><div class="wrap split rev">
+ <div class="txt">
+  <div class="kicker">For club managers</div>
+  <h2>Every team, every coach,<br>one picture.</h2>
+  <p>Track attendance, player progress and training plans across every team in the club — in one place.</p>
+  <ul class="ticks"><li>All of the club's teams and coaches in one place</li><li>Alerts on kids who keep missing sessions, before they leave</li><li>Role-based permissions: coach, assistant, manager</li><li>Coming soon: compare progress across teams and age groups</li></ul>
+ </div>
+ <div class="shot"><div class="phone"><img src="../assets/card.webp" alt="A player card in SINAI Club" loading="lazy"></div></div>
+</div></section>
+
+<section id="parents" style="padding-top:20px"><div class="wrap">
+ <div class="sh"><div class="kicker">For parents and players</div><h2>See the progress.<br>Feel part of the team.</h2><p>An explainer page for parents, to send them before they join: <a href="../parents/" style="color:var(--pri);font-weight:700">sinaiclub.com/parents →</a></p></div>
+ <div class="par">
+  <div class="pc"><div class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1E45B0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2.5"/><circle cx="8.5" cy="10" r="2"/><path d="M5.5 16c.5-1.8 1.6-2.7 3-2.7s2.5.9 3 2.7M14 9h4M14 13h3"/></svg></div><h3>A personal player card</h3><p>Kids watch their attributes improve, session after session.</p></div>
+  <div class="pc"><div class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1E45B0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="6" width="13" height="12" rx="2.5"/><path d="M15.5 10.5l6-3v9l-6-3"/></svg></div><h3>Challenges and friends</h3><p>Coming soon: juggling challenges and videos — with parental consent.</p></div>
+  <div class="pc"><div class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1E45B0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9a6 6 0 0 1 12 0c0 5 2 6.5 2 6.5H4S6 14 6 9z"/><path d="M10 19a2 2 0 0 0 4 0"/></svg></div><h3>Updates from the coach</h3><p>The next session, personal goals, and a direct message to the coach.</p></div>
+ </div>
+</div></section>
+
+<section id="security" style="padding-top:20px"><div class="wrap"><div class="sec">
+ <svg class="shield" viewBox="0 0 24 24" fill="#fff" aria-hidden="true"><path d="M12 2l8 3.5v6.2c0 5-3.4 8.6-8 10.3-4.6-1.7-8-5.3-8-10.3V5.5L12 2z"/></svg>
+ <div>
+  <div class="kicker">Privacy and security</div>
+  <h2>Kids' data stays<br>protected and private.</h2>
+  <p>We're talking about children, so every layer of SINAI Club is built to protect them.</p>
+ </div>
+ <div class="grid">
+  <div class="it"><b>Everyone sees only their own</b><span>Role-based permissions for coach, manager, parent and player — enforced at the database level.</span></div>
+  <div class="it"><b>Parental consent for videos</b><span>A simple consent screen on first sign-in.</span></div>
+  <div class="it"><b>Encrypted in transit and at rest</b><span>Encrypted connections, and data stored encrypted on the server.</span></div>
+  <div class="it"><b>Clubs kept separate</b><span>Each club's data is accessible only to its own people.</span></div>
+ </div>
+</div></div></section>
+
+<section id="setup" class="setup"><div class="wrap">
+ <div class="kicker">Setup</div>
+ <h2 class="big"><span>We handle the setup,</span><span>you own the pitch.</span></h2>
+ <div class="steps">
+  <div class="step"><div class="n">1</div><h3>Upload your teams</h3><p>Player lists straight from Excel — we sort out the rest.</p></div>
+  <div class="step"><div class="n">2</div><h3>Set up coaches and permissions</h3><p>Each coach gets access to their own teams, and parents join with a link.</p></div>
+  <div class="step"><div class="n">3</div><h3>Head out to the pitch</h3><p>Add SINAI Club to your home screen and start coaching — nothing to install.</p></div>
+ </div>
+</div></section>
+
+<section id="contact" style="padding-top:0"><div class="wrap"><div class="cta">
+ <i class="deco" style="width:16px;height:16px;top:22px;right:38%" aria-hidden="true"></i><i class="deco" style="width:10px;height:10px;bottom:28px;right:8%;animation-delay:-1s" aria-hidden="true"></i><i class="deco" style="width:12px;height:12px;top:40%;left:46%;animation-delay:-2s" aria-hidden="true"></i>
+ <div><h2>Let's see SINAI Club<br>with your teams.</h2><p>A short demo, on your own club. Write to us: <span class="mail">hello@sinaiclub.com</span></p></div>
+ <div style="display:flex;gap:10px;flex-wrap:wrap"><a class="btn btn-lime" href="mailto:hello@sinaiclub.com?subject=SINAI%20Club%20demo">Book a demo</a><a class="btn btn-line" href="../app/">Sign in</a></div>
+</div></div></section>
+
+<footer><div class="wrap">
+ <a href="#" class="brand" aria-label="SINAI Club"><img src="../assets/icon.svg" alt="" style="width:26px;height:26px"><span class="word" style="font-size:17px"><b>SINAI</b><span> Club</span></span></a>
+ <div>© <span id="yr">2026</span> SINAI Club · <a href="../parents/">For parents</a> · <a href="../" hreflang="he" lang="he" onclick="try{localStorage.setItem('sg-lang','he')}catch(e){}">עברית</a> · <span class="mail" style="font-weight:400">hello@sinaiclub.com</span></div>
+</div></footer>
+<script>
+try{document.getElementById('yr').textContent=new Date().getFullYear();}catch(e){}
+(function(){
+ var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+ var cols=['#B9EE3E','#4D7CF0','#9DB8F7','#1E45B0','#B9EE3E'];
+ function rnd(a,b){return a+Math.random()*(b-a)}
+ function sp(cls,c,s){var e=document.createElement('i');e.className='sp '+cls;e.style.setProperty('--c',c);e.style.setProperty('--s',s+'px');return e}
+ /* occasional small sparks across the hero, kept away from the copy column */
+ var fx=document.getElementById('fx'),hero=document.querySelector('.hero'),on=true;
+ if(fx&&!reduce){
+  if('IntersectionObserver' in window){new IntersectionObserver(function(es){on=es[0].isIntersecting}).observe(hero)}
+  setInterval(function(){
+   if(!on||document.hidden)return;
+   var w=fx.clientWidth,h=fx.clientHeight,mob=w<980,x,y;
+   if(mob){x=rnd(.05,.95)*w;y=rnd(.62,.95)*h}else{x=rnd(.58,.96)*w;y=rnd(.15,.85)*h}
+   var b=document.createElement('div');b.className='burst';b.style.cssText='position:absolute;left:'+x+'px;top:'+y+'px';
+   for(var j=0;j<6;j++){var a=j/6*Math.PI*2+rnd(-.3,.3),r=rnd(24,54),st=j%2===0;var e=sp(st?'st':'dot',cols[(j+Math.floor(x))%cols.length],st?rnd(8,12):rnd(4,6));
+    e.style.setProperty('--dx',(Math.cos(a)*r).toFixed(0)+'px');e.style.setProperty('--dy',(Math.sin(a)*r).toFixed(0)+'px');b.appendChild(e)}
+   fx.appendChild(b);setTimeout(function(){b.remove()},1500);
+  },2600);
+ }
+ /* tossed team tiles */
+ var toss=document.getElementById('toss');
+ if(toss){
+  if(reduce||!('IntersectionObserver' in window)){toss.classList.add('in')}
+  else{var io=new IntersectionObserver(function(es){es.forEach(function(en){if(en.isIntersecting){toss.classList.add('in');io.disconnect()}})},{threshold:.25});io.observe(toss)}
+ }
+})();
+</script>
+</body>
+</html>
