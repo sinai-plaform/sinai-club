@@ -32,7 +32,7 @@ async function useToken(th){
   return error ? {error:error.message} : {user:data.user};
 }
 
-const APP_VERSION='2.3.0';
+const APP_VERSION='2.4.0';
 const S = { user:null, club:null, role:null, teams:[], team:null, players:[], attrs:[], dbDrills:[],
             session:null, sessionDrills:[], attendance:{}, match:null, view:'home', online:navigator.onLine };
 
@@ -164,15 +164,71 @@ const GRP_LABEL = {tech:'טכני',phys:'פיזי',mental:'מנטלי',gk:'שו�
 
 /* quick tags → attribute + score */
 const TAGS=[
- {t:'החלטה טובה',a:'decisions',s:4,good:1},{t:'איבוד קל',a:'decisions',s:2},
- {t:'מסירה מצוינת',a:'passing',s:5,good:1},{t:'מסירה לא מדויקת',a:'passing',s:2},
- {t:'עבר 1v1',a:'dribbling',s:5,good:1},{t:'איבד בכדרור',a:'dribbling',s:2},
- {t:'סיום טוב',a:'shooting',s:4,good:1},{t:'החמצה',a:'shooting',s:2},
- {t:'לא חזר להגנה',a:'determination',s:2},{t:'לחץ מצוין',a:'determination',s:5,good:1},
- {t:'מנהיגות',a:'leadership',s:5,good:1},{t:'דיבר עם החבר׳ה',a:'teamwork',s:4,good:1},
- {t:'ראש למעלה',a:'decisions',s:4,good:1},{t:'לא מרוכז',a:'focus',s:2}
+ // טכני
+ {g:'tech',t:'מסירה מצוינת',a:'passing',s:5,good:1},{g:'tech',t:'מסירה שוברת קו',a:'passing',s:5,good:1},{g:'tech',t:'מסירה לא מדויקת',a:'passing',s:2},
+ {g:'tech',t:'קבלה מצוינת',a:'first_touch',s:5,good:1},{g:'tech',t:'גוף פתוח בקבלה',a:'first_touch',s:4,good:1},{g:'tech',t:'קבלה בורחת',a:'first_touch',s:2},
+ {g:'tech',t:'עבר 1v1',a:'dribbling',s:5,good:1},{g:'tech',t:'שמר על הכדור בלחץ',a:'dribbling',s:4,good:1},{g:'tech',t:'איבד בכדרור',a:'dribbling',s:2},
+ {g:'tech',t:'סיום טוב',a:'shooting',s:5,good:1},{g:'tech',t:'בעיטה למסגרת',a:'shooting',s:4,good:1},{g:'tech',t:'החמצה',a:'shooting',s:2},
+ {g:'tech',t:'נגיחה טובה',a:'heading',s:4,good:1},{g:'tech',t:'נמנע מנגיחה',a:'heading',s:2},
+ {g:'tech',t:'ארוכה מדויקת',a:'long_pass',s:5,good:1},{g:'tech',t:'ארוכה לא מדויקת',a:'long_pass',s:2},
+ {g:'tech',t:'תיקול נקי',a:'tackling',s:5,good:1},{g:'tech',t:'עבירה מיותרת',a:'tackling',s:2},
+ {g:'tech',t:'שליטה יפה בכדור',a:'ball_control',s:5,good:1},{g:'tech',t:'הכדור בורח לו',a:'ball_control',s:2},
+ // מנטלי
+ {g:'mental',t:'החלטה טובה',a:'decisions',s:4,good:1},{g:'mental',t:'ראש למעלה',a:'decisions',s:4,good:1},{g:'mental',t:'איבוד קל',a:'decisions',s:2},{g:'mental',t:'החלטה שגויה',a:'decisions',s:2},
+ {g:'mental',t:'מרוכז',a:'focus',s:5,good:1},{g:'mental',t:'לא מרוכז',a:'focus',s:2},
+ {g:'mental',t:'משחק קבוצתי',a:'teamwork',s:5,good:1},{g:'mental',t:'דיבר עם החבר׳ה',a:'teamwork',s:4,good:1},{g:'mental',t:'משחק לבד',a:'teamwork',s:2},
+ {g:'mental',t:'לחץ מצוין',a:'determination',s:5,good:1},{g:'mental',t:'לא ויתר',a:'determination',s:5,good:1},{g:'mental',t:'לא חזר להגנה',a:'determination',s:2},{g:'mental',t:'ויתר מהר',a:'determination',s:2},
+ {g:'mental',t:'מנהיגות',a:'leadership',s:5,good:1},{g:'mental',t:'עודד חברים',a:'leadership',s:4,good:1},
+ {g:'mental',t:'הקשיב והשתתף',a:'listening',s:5,good:1},{g:'mental',t:'לא הקשיב',a:'listening',s:2},
+ {g:'mental',t:'אמיץ',a:'courage',s:5,good:1},{g:'mental',t:'נרתע',a:'courage',s:2},
+ // פיזי
+ {g:'phys',t:'מהיר',a:'speed',s:5,good:1},{g:'phys',t:'איטי לחזור',a:'speed',s:2},
+ {g:'phys',t:'שינוי כיוון חד',a:'agility',s:5,good:1},{g:'phys',t:'מסורבל',a:'agility',s:2},
+ {g:'phys',t:'ניצח במאבק',a:'strength',s:5,good:1},{g:'phys',t:'הפסיד במאבק',a:'strength',s:2},
+ {g:'phys',t:'רץ עד הסוף',a:'stamina',s:5,good:1},{g:'phys',t:'נגמר מהר',a:'stamina',s:2},
+ {g:'phys',t:'תנועה מתואמת',a:'coordination',s:5,good:1},{g:'phys',t:'מתקשה בתיאום',a:'coordination',s:2},
+ // שוער
+ {g:'gk',t:'עצירה מצוינת',a:'gk_handling',s:5,good:1},{g:'gk',t:'שחרר כדור',a:'gk_handling',s:2},
+ {g:'gk',t:'יציאה טובה',a:'gk_positioning',s:5,good:1},{g:'gk',t:'מיקום שגוי',a:'gk_positioning',s:2},
+ {g:'gk',t:'משחק טוב ברגל',a:'gk_feet',s:4,good:1},{g:'gk',t:'ניהל את ההגנה',a:'gk_comm',s:5,good:1}
 ];
-function tagsForTeam(){const ks=new Set(teamAttrs(true).map(a=>a.key));return TAGS.filter(t=>ks.has(t.a));}
+// the tags that fit this team's age profile (and the goalkeeper ones only for a goalkeeper)
+function tagsForTeam(isGk){const ks=new Set(teamAttrs(true).map(a=>a.key));return TAGS.filter(t=>ks.has(t.a)&&(isGk||t.g!=='gk'));}
+
+/* ---------- quick notes ----------
+   One tap = one observation (attribute + score). The sheet stays open, so a coach can
+   tap three notes in a row; the last one can be undone. */
+const NOTE_GRP={tech:'טכני',mental:'מנטלי',phys:'פיזי',gk:'שוער'};
+let NOTE_LOG=[];
+function notesPanel(pid){
+  const p=S.players.find(x=>x.id===pid)||{};
+  const tags=tagsForTeam(p.position==='שוער');
+  NOTE_LOG=[];
+  const groups=['gk','tech','mental','phys'].filter(g=>tags.some(t=>t.g===g));
+  return `<div class="notes">${groups.map(g=>`<div class="ngrp"><p class="xs muted">${NOTE_GRP[g]}</p>
+    <div class="nbtns">${tags.filter(t=>t.g===g).map(t=>{const i=TAGS.indexOf(t);
+      return `<button class="nb ${t.good?'up':'dn'}" onclick="tapNote('${pid}',${i},this)">${esc(t.t)}</button>`;}).join('')}</div></div>`).join('')}
+    <div class="spread" style="margin-top:8px"><span class="xs muted" id="nlog">כל הקשה נשמרת כנתון בכרטיס השחקן</span>
+      <button class="btn sm ghost" id="nundo" onclick="undoNote()" disabled>ביטול אחרון</button></div></div>`;
+}
+async function tapNote(pid,i,btn){
+  const t=TAGS[i]; if(!t) return;
+  btn.classList.add('hit'); setTimeout(()=>btn.classList.remove('hit'),500);
+  const row=await addObs(pid,t.a,t.s,{source:S.match?'match':'tag',tag:t.t,drill_id:S.sessionDrills?.[LIVE?.idx]?.id||null,match_id:S.match?S.match.id:null});
+  NOTE_LOG.push(row);
+  const l=$('#nlog'); if(l) l.textContent=`נרשמו ${NOTE_LOG.length}: ${NOTE_LOG.slice(-3).map(r=>r.tag).join(' · ')}`;
+  const u=$('#nundo'); if(u) u.disabled=false;
+  if(typeof drawTiles==='function') drawTiles(); if(S.match&&typeof drawMatchTiles==='function') drawMatchTiles();
+}
+async function undoNote(){
+  const r=NOTE_LOG.pop(); if(!r) return;
+  LOCAL_OBS=LOCAL_OBS.filter(o=>o.id!==r.id); LS('obs',LOCAL_OBS.slice(-800));
+  await sb.from('coach_observations').update({voided:true}).eq('id',r.id);
+  const l=$('#nlog'); if(l) l.textContent=NOTE_LOG.length?`נרשמו ${NOTE_LOG.length}`:'בוטל';
+  const u=$('#nundo'); if(u) u.disabled=!NOTE_LOG.length;
+  if(typeof drawTiles==='function') drawTiles(); if(S.match&&typeof drawMatchTiles==='function') drawMatchTiles();
+  toast('בוטל: '+r.tag);
+}
 
 /* ---------- observations ---------- */
 async function addObs(playerId, attribute, score, extra){

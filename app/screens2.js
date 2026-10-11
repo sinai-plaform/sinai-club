@@ -221,11 +221,12 @@ function matchTap(pid){
       <button class="btn" onclick="mEvent('${pid}','assist','${side}')">🅰️ בישול</button>
     </div>
     <div class="sep"></div>
-    <div class="chips">${tagsForTeam().map((t,i)=>`<button class="chip" onclick="applyTag('${pid}',${i})">${t.good?'👍':'⚠️'} ${esc(t.t)}</button>`).join('')}</div>
+    ${notesPanel(pid)}
     <div class="sep"></div>
     <div id="attrPick"><p class="xs muted" style="margin-bottom:6px">דירוג תכונה</p>
       <div class="chips">${teamAttrs(p.position==='שוער').map(a=>`<button class="chip" onclick="pickAttr('${pid}','${a.key}')">${esc(a.label)}</button>`).join('')}</div></div>
-    <div id="scorePick"></div>`);
+    <div id="scorePick"></div>
+    <button class="btn big" style="margin-top:12px;width:100%" onclick="closeSheet()">סיום</button>`);
 }
 async function mEvent(pid,type,side){
   const minute=Math.floor(MATCH.clock/60);

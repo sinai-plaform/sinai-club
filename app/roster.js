@@ -367,6 +367,8 @@ VIEWS.broadcast = async function(){
   const sign = `\n\n— ${S.team.name}, ${S.club.name}`;
 
   const T = [];
+  T.push({k:'about', t:'היכרות להורים: מה זה SINAI Club',
+    b:`הורים יקרים, השנה נעבוד עם SINAI Club: אפליקציה שבה תראו את האימון הבא, את הנוכחות, את היעדים שאני מציב לכל ילד ואת ההתקדמות שלו.\nכל הורה רואה רק את הילד שלו, וצילום של ילדים רק באישורכם.\nהסבר קצר, דקה קריאה: ${location.origin}/parents/\nבימים הקרובים יגיע אליכם קישור אישי להצטרפות.${sign}`});
   if(next) T.push({k:'reminder', t:'תזכורת לאימון הבא',
     b:`תזכורת: אימון ${when(next)}.${next.focus?`\nהדגש: ${next.focus}.`:''}\nלהביא בקבוק מים ונעלי כדורגל. נתראה!${sign}`});
   if(next) T.push({k:'cancel', t:'ביטול אימון',

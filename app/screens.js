@@ -437,15 +437,13 @@ function ratePlayer(pid, opts){
   const p=S.players.find(x=>x.id===pid); if(!p)return;
   const isGk=p.position==='שוער';
   const attrs=teamAttrs(isGk).filter(a=>isGk? true : a.grp!=='gk');
-  const drillId=S.sessionDrills[LIVE.idx]?.id;
-  const tags=tagsForTeam();
-  const scale=S.team?.rating_scale||5;
   sheet(`<div class="spread"><h2>${esc(p.name)}</h2><span class="xs muted">${opts&&opts.match?'משחק':'תרגיל'}</span></div>
-    <div class="chips" style="margin:12px 0 4px">${tags.map((t,i)=>`<button class="chip" onclick="applyTag('${pid}',${i})">${t.good?'👍':'⚠️'} ${esc(t.t)}</button>`).join('')}</div>
+    ${notesPanel(pid)}
     <div class="sep"></div>
-    <div id="attrPick"><p class="xs muted" style="margin-bottom:6px">או דירוג תכונה</p>
+    <div id="attrPick"><p class="xs muted" style="margin-bottom:6px">או ציון לתכונה</p>
     <div class="chips">${attrs.map(a=>`<button class="chip" onclick="pickAttr('${pid}','${a.key}')">${esc(a.label)}</button>`).join('')}</div></div>
-    <div id="scorePick"></div>`);
+    <div id="scorePick"></div>
+    <button class="btn big" style="margin-top:12px;width:100%" onclick="closeSheet()">סיום</button>`);
 }
 function pickAttr(pid,key){
   const scale=S.team?.rating_scale||5;
@@ -460,12 +458,7 @@ async function saveScore(pid,key,score){
   closeSheet(); drawTiles(); if(S.match)drawMatchTiles();
   toast(`${ATTR_LABEL(key)} ${score}`);
 }
-async function applyTag(pid,i){
-  const t=tagsForTeam()[i]; if(!t)return;
-  await addObs(pid,t.a,t.s,{source:'tag',tag:t.t,drill_id:S.sessionDrills[LIVE.idx]?.id,match_id:S.match?S.match.id:null});
-  closeSheet(); drawTiles(); if(S.match)drawMatchTiles();
-  toast(t.t);
-}
+async function applyTag(pid,i){ const t=tagsForTeam(true)[i]; if(t) await tapNote(pid,TAGS.indexOf(t),document.createElement('i')); }
 /* what a drill category trains — a quick round rates exactly that */
 const CAT_ATTRS = {
   warm:['coordination','agility','listening'], phys:['speed','agility','stamina','coordination'],
