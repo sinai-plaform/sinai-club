@@ -235,8 +235,8 @@ async function mEvent(pid,type,side){
     if(side==='a')S.match.score_a++; else S.match.score_b++;
     await sb.from('coach_matches').update({score_a:S.match.score_a,score_b:S.match.score_b}).eq('id',S.match.id);
     const el=$(side==='a'?'#sa':'#sb2'); if(el)el.textContent=side==='a'?S.match.score_a:S.match.score_b;
-    await addObs(pid,'shooting',5,{source:'match',match_id:S.match.id});
-  } else await addObs(pid,'passing',5,{source:'match',match_id:S.match.id});
+    await addEffects(pid,[['shooting',5,1],['first_touch',4,.3],['determination',4,.2]],{source:'match',match_id:S.match.id,tag:'שער'});
+  } else await addEffects(pid,[['passing',5,1],['decisions',4,.5],['teamwork',4,.3]],{source:'match',match_id:S.match.id,tag:'בישול'});
   closeSheet(); drawMatchTiles(); toast(type==='goal'?'שער!':'בישול');
 }
 function halfEnd(){ MATCH.half++; MATCH.clock=0; clearInterval(MATCH.timer); MATCH.timer=null;
@@ -258,7 +258,9 @@ function endMatch(){
       <button class="btn ghost" style="width:100%;margin-top:10px" onclick="mSkip()">דלג</button>`);
   };
   window.mRate=async(pid,v)=>{ await push('coach_match_events',{match_id:S.match.id,player_id:pid,type:'rating',value:v});
-    await addObs(pid,'decisions',Math.max(1,Math.round(v/2)),{source:'match',match_id:S.match.id,note:'ציון משחק '+v}); i++; step(); };
+    // a game rating is a general impression: it speaks a little about several attributes
+    const sc=Math.max(1,Math.min(5,Math.round(v/2)));
+    await addEffects(pid,[['decisions',sc,.5],['teamwork',sc,.4],['determination',sc,.4]],{source:'match',match_id:S.match.id,note:'ציון משחק '+v}); i++; step(); };
   window.mSkip=()=>{i++;step();};
   step();
 }

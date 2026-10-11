@@ -140,7 +140,7 @@ async function famKid(id){
   // scores only if the coach opened them for this team
   let attrHtml='';
   if(t && ((S.role==='parent' && t.parent_sees_scores) || (S.role==='player' && t.show_scores_to_player))){
-    const {data:sc}=await sb.from('coach_player_attributes').select('*').eq('player_id',id);
+    const {data:sc}=await sb.rpc('coach_kid_attributes',{p_player:id});
     if(sc&&sc.length) attrHtml=`<div class="hd"><h2>תכונות</h2></div><div class="card">
       ${sc.filter(x=>x.score_20!=null).sort((a,b)=>b.score_20-a.score_20).map(x=>`
         <div class="attr"><span>${esc(ATTR_LABEL(x.attribute))}</span>

@@ -32,7 +32,7 @@ async function useToken(th){
   return error ? {error:error.message} : {user:data.user};
 }
 
-const APP_VERSION='2.4.0';
+const APP_VERSION='2.5.0';
 const S = { user:null, club:null, role:null, teams:[], team:null, players:[], attrs:[], dbDrills:[],
             session:null, sessionDrills:[], attendance:{}, match:null, view:'home', online:navigator.onLine };
 
@@ -165,32 +165,32 @@ const GRP_LABEL = {tech:'טכני',phys:'פיזי',mental:'מנטלי',gk:'שו�
 /* quick tags → attribute + score */
 const TAGS=[
  // טכני
- {g:'tech',t:'מסירה מצוינת',a:'passing',s:5,good:1},{g:'tech',t:'מסירה שוברת קו',a:'passing',s:5,good:1},{g:'tech',t:'מסירה לא מדויקת',a:'passing',s:2},
- {g:'tech',t:'קבלה מצוינת',a:'first_touch',s:5,good:1},{g:'tech',t:'גוף פתוח בקבלה',a:'first_touch',s:4,good:1},{g:'tech',t:'קבלה בורחת',a:'first_touch',s:2},
- {g:'tech',t:'עבר 1v1',a:'dribbling',s:5,good:1},{g:'tech',t:'שמר על הכדור בלחץ',a:'dribbling',s:4,good:1},{g:'tech',t:'איבד בכדרור',a:'dribbling',s:2},
- {g:'tech',t:'סיום טוב',a:'shooting',s:5,good:1},{g:'tech',t:'בעיטה למסגרת',a:'shooting',s:4,good:1},{g:'tech',t:'החמצה',a:'shooting',s:2},
+ {g:'tech',t:'מסירה מצוינת',a:'passing',s:5,good:1},{g:'tech',t:'מסירה שוברת קו',a:'passing',s:5,good:1,fx:[['decisions',4,.6]]},{g:'tech',t:'מסירה לא מדויקת',a:'passing',s:2},
+ {g:'tech',t:'קבלה מצוינת',a:'first_touch',s:5,good:1},{g:'tech',t:'גוף פתוח בקבלה',a:'first_touch',s:4,good:1,fx:[['decisions',4,.4]]},{g:'tech',t:'קבלה בורחת',a:'first_touch',s:2},
+ {g:'tech',t:'עבר 1v1',a:'dribbling',s:5,good:1,fx:[['agility',4,.3],['courage',5,.3]]},{g:'tech',t:'שמר על הכדור בלחץ',a:'dribbling',s:4,good:1,fx:[['strength',4,.4],['first_touch',4,.3]]},{g:'tech',t:'איבד בכדרור',a:'dribbling',s:2,fx:[['decisions',2,.3]]},
+ {g:'tech',t:'סיום טוב',a:'shooting',s:5,good:1,fx:[['first_touch',4,.3]]},{g:'tech',t:'בעיטה למסגרת',a:'shooting',s:4,good:1},{g:'tech',t:'החמצה',a:'shooting',s:2,w:.6,fx:[]},
  {g:'tech',t:'נגיחה טובה',a:'heading',s:4,good:1},{g:'tech',t:'נמנע מנגיחה',a:'heading',s:2},
  {g:'tech',t:'ארוכה מדויקת',a:'long_pass',s:5,good:1},{g:'tech',t:'ארוכה לא מדויקת',a:'long_pass',s:2},
- {g:'tech',t:'תיקול נקי',a:'tackling',s:5,good:1},{g:'tech',t:'עבירה מיותרת',a:'tackling',s:2},
+ {g:'tech',t:'תיקול נקי',a:'tackling',s:5,good:1,fx:[['decisions',4,.3]]},{g:'tech',t:'עבירה מיותרת',a:'tackling',s:2,fx:[['decisions',2,.4]]},
  {g:'tech',t:'שליטה יפה בכדור',a:'ball_control',s:5,good:1},{g:'tech',t:'הכדור בורח לו',a:'ball_control',s:2},
  // מנטלי
- {g:'mental',t:'החלטה טובה',a:'decisions',s:4,good:1},{g:'mental',t:'ראש למעלה',a:'decisions',s:4,good:1},{g:'mental',t:'איבוד קל',a:'decisions',s:2},{g:'mental',t:'החלטה שגויה',a:'decisions',s:2},
+ {g:'mental',t:'החלטה טובה',a:'decisions',s:4,good:1},{g:'mental',t:'ראש למעלה',a:'decisions',s:4,good:1,fx:[['passing',4,.3]]},{g:'mental',t:'איבוד קל',a:'decisions',s:2,fx:[['focus',2,.4]]},{g:'mental',t:'החלטה שגויה',a:'decisions',s:2},
  {g:'mental',t:'מרוכז',a:'focus',s:5,good:1},{g:'mental',t:'לא מרוכז',a:'focus',s:2},
- {g:'mental',t:'משחק קבוצתי',a:'teamwork',s:5,good:1},{g:'mental',t:'דיבר עם החבר׳ה',a:'teamwork',s:4,good:1},{g:'mental',t:'משחק לבד',a:'teamwork',s:2},
- {g:'mental',t:'לחץ מצוין',a:'determination',s:5,good:1},{g:'mental',t:'לא ויתר',a:'determination',s:5,good:1},{g:'mental',t:'לא חזר להגנה',a:'determination',s:2},{g:'mental',t:'ויתר מהר',a:'determination',s:2},
- {g:'mental',t:'מנהיגות',a:'leadership',s:5,good:1},{g:'mental',t:'עודד חברים',a:'leadership',s:4,good:1},
- {g:'mental',t:'הקשיב והשתתף',a:'listening',s:5,good:1},{g:'mental',t:'לא הקשיב',a:'listening',s:2},
+ {g:'mental',t:'משחק קבוצתי',a:'teamwork',s:5,good:1},{g:'mental',t:'דיבר עם החבר׳ה',a:'teamwork',s:4,good:1},{g:'mental',t:'משחק לבד',a:'teamwork',s:2,fx:[['decisions',2,.4]]},
+ {g:'mental',t:'לחץ מצוין',a:'determination',s:5,good:1,fx:[['stamina',4,.4],['teamwork',4,.4]]},{g:'mental',t:'לא ויתר',a:'determination',s:5,good:1,fx:[['stamina',4,.3]]},{g:'mental',t:'לא חזר להגנה',a:'determination',s:2,fx:[['teamwork',2,.5]]},{g:'mental',t:'ויתר מהר',a:'determination',s:2,fx:[['focus',2,.3]]},
+ {g:'mental',t:'מנהיגות',a:'leadership',s:5,good:1,fx:[['teamwork',4,.3]]},{g:'mental',t:'עודד חברים',a:'leadership',s:4,good:1,fx:[['teamwork',4,.5]]},
+ {g:'mental',t:'הקשיב והשתתף',a:'listening',s:5,good:1,fx:[['focus',4,.4]]},{g:'mental',t:'לא הקשיב',a:'listening',s:2,fx:[['focus',2,.4]]},
  {g:'mental',t:'אמיץ',a:'courage',s:5,good:1},{g:'mental',t:'נרתע',a:'courage',s:2},
  // פיזי
- {g:'phys',t:'מהיר',a:'speed',s:5,good:1},{g:'phys',t:'איטי לחזור',a:'speed',s:2},
+ {g:'phys',t:'מהיר',a:'speed',s:5,good:1},{g:'phys',t:'איטי לחזור',a:'speed',s:2,fx:[['determination',2,.4]]},
  {g:'phys',t:'שינוי כיוון חד',a:'agility',s:5,good:1},{g:'phys',t:'מסורבל',a:'agility',s:2},
- {g:'phys',t:'ניצח במאבק',a:'strength',s:5,good:1},{g:'phys',t:'הפסיד במאבק',a:'strength',s:2},
- {g:'phys',t:'רץ עד הסוף',a:'stamina',s:5,good:1},{g:'phys',t:'נגמר מהר',a:'stamina',s:2},
+ {g:'phys',t:'ניצח במאבק',a:'strength',s:5,good:1,fx:[['determination',4,.3],['courage',5,.3]]},{g:'phys',t:'הפסיד במאבק',a:'strength',s:2,fx:[]},
+ {g:'phys',t:'רץ עד הסוף',a:'stamina',s:5,good:1,fx:[['determination',5,.5]]},{g:'phys',t:'נגמר מהר',a:'stamina',s:2},
  {g:'phys',t:'תנועה מתואמת',a:'coordination',s:5,good:1},{g:'phys',t:'מתקשה בתיאום',a:'coordination',s:2},
  // שוער
  {g:'gk',t:'עצירה מצוינת',a:'gk_handling',s:5,good:1},{g:'gk',t:'שחרר כדור',a:'gk_handling',s:2},
- {g:'gk',t:'יציאה טובה',a:'gk_positioning',s:5,good:1},{g:'gk',t:'מיקום שגוי',a:'gk_positioning',s:2},
- {g:'gk',t:'משחק טוב ברגל',a:'gk_feet',s:4,good:1},{g:'gk',t:'ניהל את ההגנה',a:'gk_comm',s:5,good:1}
+ {g:'gk',t:'יציאה טובה',a:'gk_positioning',s:5,good:1,fx:[['courage',5,.3]]},{g:'gk',t:'מיקום שגוי',a:'gk_positioning',s:2},
+ {g:'gk',t:'משחק טוב ברגל',a:'gk_feet',s:4,good:1,fx:[['passing',4,.3]]},{g:'gk',t:'ניהל את ההגנה',a:'gk_comm',s:5,good:1,fx:[['leadership',4,.4]]}
 ];
 // the tags that fit this team's age profile (and the goalkeeper ones only for a goalkeeper)
 function tagsForTeam(isGk){const ks=new Set(teamAttrs(true).map(a=>a.key));return TAGS.filter(t=>ks.has(t.a)&&(isGk||t.g!=='gk'));}
@@ -214,16 +214,17 @@ function notesPanel(pid){
 async function tapNote(pid,i,btn){
   const t=TAGS[i]; if(!t) return;
   btn.classList.add('hit'); setTimeout(()=>btn.classList.remove('hit'),500);
-  const row=await addObs(pid,t.a,t.s,{source:S.match?'match':'tag',tag:t.t,drill_id:S.sessionDrills?.[LIVE?.idx]?.id||null,match_id:S.match?S.match.id:null});
-  NOTE_LOG.push(row);
-  const l=$('#nlog'); if(l) l.textContent=`נרשמו ${NOTE_LOG.length}: ${NOTE_LOG.slice(-3).map(r=>r.tag).join(' · ')}`;
+  const rows=await addEffects(pid,[[t.a,t.s,t.w||1],...(t.fx||[])],{source:S.match?'match':'tag',tag:t.t,drill_id:S.sessionDrills?.[LIVE?.idx]?.id||null,match_id:S.match?S.match.id:null});
+  NOTE_LOG.push(rows);
+  const l=$('#nlog'); if(l) l.textContent=`נרשמו ${NOTE_LOG.length}: ${NOTE_LOG.slice(-3).map(r=>r[0].tag).join(' · ')}`;
   const u=$('#nundo'); if(u) u.disabled=false;
   if(typeof drawTiles==='function') drawTiles(); if(S.match&&typeof drawMatchTiles==='function') drawMatchTiles();
 }
 async function undoNote(){
-  const r=NOTE_LOG.pop(); if(!r) return;
-  LOCAL_OBS=LOCAL_OBS.filter(o=>o.id!==r.id); LS('obs',LOCAL_OBS.slice(-800));
-  await sb.from('coach_observations').update({voided:true}).eq('id',r.id);
+  const rows=NOTE_LOG.pop(); if(!rows) return; const r=rows[0];
+  const ids=rows.map(x=>x.id);
+  LOCAL_OBS=LOCAL_OBS.filter(o=>!ids.includes(o.id)); LS('obs',LOCAL_OBS.slice(-800));
+  await sb.from('coach_observations').update({voided:true}).in('id',ids);
   const l=$('#nlog'); if(l) l.textContent=NOTE_LOG.length?`נרשמו ${NOTE_LOG.length}`:'בוטל';
   const u=$('#nundo'); if(u) u.disabled=!NOTE_LOG.length;
   if(typeof drawTiles==='function') drawTiles(); if(S.match&&typeof drawMatchTiles==='function') drawMatchTiles();
@@ -235,34 +236,50 @@ async function addObs(playerId, attribute, score, extra){
   const row={id:uid(),player_id:playerId,team_id:S.team?.id||null,attribute,score,
     source:(extra&&extra.source)||'drill',session_id:(extra&&extra.session_id)||S.session?.id||null,
     match_id:(extra&&extra.match_id)||null,drill_id:(extra&&extra.drill_id)||null,
-    tag:(extra&&extra.tag)||null,note:(extra&&extra.note)||null,by_user:S.user?.id||null,at:new Date().toISOString()};
+    tag:(extra&&extra.tag)||null,note:(extra&&extra.note)||null,by_user:S.user?.id||null,at:new Date().toISOString(),
+    weight:(extra&&extra.weight)||1};
   LOCAL_OBS.push(row); LS('obs',LOCAL_OBS.slice(-800));
   await push('coach_observations',row);
   return row;
+}
+/* one action → several attributes: [[attribute, score 1-5, weight], …]; attributes this team does not rate are skipped */
+async function addEffects(pid, effects, extra){
+  const ks=new Set(teamAttrs(true).map(a=>a.key)); const out=[];
+  for(const [a,sc,w] of effects){ if(!ks.has(a)) continue; out.push(await addObs(pid,a,sc,{...extra,weight:w||1})); }
+  return out;
 }
 let LOCAL_OBS = LS('obs')||[];
 function localCounts(playerId, sessionId){ return LOCAL_OBS.filter(o=>o.player_id===playerId && (!sessionId||o.session_id===sessionId)).length; }
 
 /* ---------- attribute scores (client-side, same formula as the DB view) ---------- */
+/* Attribute score, 1-20 — the same formula as the database view coach_player_attributes:
+     value  = 1 + (score-1)·4.75                       1-5 → 1-20
+     weight = source × observation weight × 0.5^(days/28)
+     score  = (Σ weight·value + 3·prior) / (Σ weight + 3)
+     prior  = the player's overall level across all attributes, itself pulled toward 10.5
+   So one tap moves a score a little, many taps move it a lot, old taps fade over a month,
+   and an attribute with few observations stays close to the player's general level. */
+const SRC_W={match:1.3,test:1.5,challenge:0.7};
 function scoreFromObs(obs){
-  const now=Date.now(); const byAttr={};
+  const now=Date.now(); const byAttr={}; let pw=0, pv=0;
   obs.forEach(o=>{
+    if(o.voided) return;
     const days=(now-new Date(o.at).getTime())/864e5;
     if(days>400) return;
-    const srcW = o.source==='match'||o.source==='test' ? 1.5 : o.source==='challenge' ? 0.7 : 1;
-    const w = srcW*Math.pow(0.5, days/21);
-    const b = byAttr[o.attribute] || (byAttr[o.attribute]={sw:0,sws:0,n90:0,r:[],p:[]});
-    b.sw+=w; b.sws+=w*o.score;
+    const v=1+(o.score-1)*4.75, ow=+(o.weight||1);
+    const w=(SRC_W[o.source]||1)*ow*Math.pow(0.5, days/28);
+    pw+=w; pv+=w*v;
+    const b = byAttr[o.attribute] || (byAttr[o.attribute]={sw:0,sv:0,n90:0,rw:0,rv:0,rn:0,qw:0,qv:0,qn:0});
+    b.sw+=w; b.sv+=w*v;
     if(days<=90)b.n90++;
-    if(days<=30)b.r.push(o.score); else if(days<=120)b.p.push(o.score);
+    if(days<=30){b.rw+=ow;b.rv+=ow*v;b.rn++;} else if(days<=120){b.qw+=ow;b.qv+=ow*v;b.qn++;}
   });
+  const prior=(pv+5*10.5)/(pw+5);
   const out={};
   for(const [k,b] of Object.entries(byAttr)){
-    const avg=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:null;
-    const r=avg(b.r), p=avg(b.p);
-    out[k]={score:b.sw?+(4*b.sws/b.sw).toFixed(1):null, n90:b.n90,
-      conf: b.n90>=25?'high':b.n90>=10?'med':b.n90>=3?'low':'none',
-      trend: (r!=null&&p!=null)? +(4*(r-p)).toFixed(1) : null};
+    out[k]={score:+((b.sv+3*prior)/(b.sw+3)).toFixed(1), n90:b.n90, weight:b.sw,
+      conf: b.sw>=8?'high':b.sw>=3?'med':b.sw>=1?'low':'none',
+      trend: (b.rn>=2&&b.qn>=2)? +(b.rv/b.rw - b.qv/b.qw).toFixed(1) : null};
   }
   return out;
 }
@@ -413,7 +430,7 @@ function renderLogin(err){
   const draw=()=>{
     let body='';
     if(mode==='in') body=`
-      <label class="f">טלפון או שם משתמש<input id="id" autocomplete="username" autocapitalize="off" dir="ltr" placeholder="050-0000000"></label>
+      <label class="f">טלפון, אימייל או שם משתמש<input id="id" autocomplete="username" autocapitalize="off" dir="ltr" placeholder="050-0000000"></label>
       <label class="f">סיסמה<input id="pw" type="password" autocomplete="current-password"></label>
       <button class="btn lime big" id="doBtn">כניסה</button>
       <button class="btn ghost sm" id="toOtp">כניסה ראשונה / שכחתי סיסמה</button>`;
@@ -463,7 +480,7 @@ function renderLogin(err){
     $('#err').classList.add('hide'); err=null;
     if(mode==='in'){
       const id=$('#id').value.trim(), pw=$('#pw').value;
-      if(!id||!pw) return showErr('צריך טלפון או שם משתמש, וסיסמה');
+      if(!id||!pw) return showErr('צריך טלפון, אימייל או שם משתמש, וסיסמה');
       busy(true,'מתחבר…');
       for(const email of loginCandidates(id)){
         const {error}=await sb.auth.signInWithPassword({email,password:pw});
