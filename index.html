@@ -8,6 +8,9 @@
 <meta name="theme-color" content="#1E45B0">
 <link rel="alternate" hreflang="he" href="https://sinaiclub.com/">
 <link rel="alternate" hreflang="en" href="https://sinaiclub.com/en/">
+<link rel="alternate" hreflang="ru" href="https://sinaiclub.com/ru/">
+<link rel="alternate" hreflang="ar" href="https://sinaiclub.com/ar/">
+<link rel="alternate" hreflang="es" href="https://sinaiclub.com/es/">
 <link rel="alternate" hreflang="x-default" href="https://sinaiclub.com/">
 <link rel="icon" type="image/svg+xml" href="assets/icon.svg">
 <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
@@ -15,6 +18,12 @@
 <meta property="og:title" content="SINAI Club — האפליקציה של מאמני הכדורגל">
 <meta property="og:description" content="אימון מלא בדקה ותוכנית מקצועית לחודש או לעונה, דירוג שחקנים בהקשה לאורך כל האימון, וכרטיס שחקן בסגנון Football Manager — באפליקציה אחת שעובדת גם במגרש.">
 <meta property="og:image" content="https://sinaiclub.com/assets/apple-touch-icon.png">
+<meta property="og:url" content="https://sinaiclub.com/">
+<meta property="og:locale" content="he_IL">
+<meta property="og:locale:alternate" content="en_US">
+<meta property="og:locale:alternate" content="ru_RU">
+<meta property="og:locale:alternate" content="ar_AR">
+<meta property="og:locale:alternate" content="es_ES">
 <script>
 /* returning users go straight into the app */
 (function(){try{
@@ -28,8 +37,8 @@
 document.documentElement.className+=' js';
 </script>
 <script id="lang-auto">
-/* language: visitors outside Israel without a Hebrew browser get the English site unless they chose Hebrew (skipped when already heading into the app) */
-if(!window.__scApp)(function(){try{if(location.hash==='#site')return;var s=localStorage.getItem('sg-lang');if(s==='he')return;var il=(Intl.DateTimeFormat().resolvedOptions().timeZone||'')==='Asia/Jerusalem'||(navigator.languages||[navigator.language]).some(function(l){return /^he|^iw/i.test(l)});if(s==='en'||!il){location.replace('en/'+location.search+location.hash)}}catch(e){}})();
+/* language: a saved choice (sg-lang) wins; otherwise the first supported browser language, with English in Israel shown in Hebrew; no match → Hebrew in Israel, English elsewhere (skipped when already heading into the app) */
+if(!window.__scApp)(function(H,P){var s=null;try{s=localStorage.getItem('sg-lang')}catch(e){}function il(){try{return Intl.DateTimeFormat().resolvedOptions().timeZone==='Asia/Jerusalem'}catch(e){return false}}function pick(){var ls=navigator.languages||[navigator.language||''];for(var i=0;i<ls.length;i++){var c=(ls[i]||'').slice(0,2).toLowerCase();if(c==='iw')c='he';if(P[c])return(c==='en'&&il())?'he':c}return il()?'he':'en'}var w=(s&&P[s])?s:pick();if(w!==H)location.replace(P[w]+location.search+location.hash)})('he',{he:'/',en:'/en/',ru:'/ru/',ar:'/ar/',es:'/es/'});
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -349,13 +358,32 @@ footer .wrap{display:flex;justify-content:space-between;align-items:center;gap:1
 .fmf b{color:#fff;font-weight:600}.fmf .st{color:#9DB8F7;letter-spacing:1px}.fmf .st i{font-style:normal;color:rgba(255,255,255,.22)}
 @media (max-width:980px){.fmrow{grid-template-columns:1fr}.b.w6{grid-column:span 2}}
 @media (max-width:560px){.fmg{grid-template-columns:1fr 1fr}.fmm{padding:14px}}
+/* language menu */
+.lng{position:relative}
+.lng summary{list-style:none;cursor:pointer;user-select:none}
+.lng summary::-webkit-details-marker{display:none}
+.lng summary .chev{opacity:.6;transition:transform .2s}
+.lng[open] summary{background:rgba(255,255,255,.85);color:var(--pri)}
+.lng[open] summary .chev{transform:rotate(180deg)}
+.lng summary:focus-visible{outline:3px solid var(--bri);outline-offset:2px}
+.lng-m{position:absolute;top:calc(100% + 8px);inset-inline-end:0;z-index:50;min-width:176px;display:grid;gap:2px;padding:6px;background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:0 22px 44px -14px rgba(13,31,79,.32),0 4px 10px rgba(13,31,79,.06)}
+.lng-m a{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;border-radius:10px;font-size:15px;font-weight:600;color:var(--head);unicode-bidi:isolate;transition:background .15s,color .15s}
+.lng-m a:hover{background:var(--tint);color:var(--pri)}
+.lng-m a[aria-current]{color:var(--pri);background:var(--tint)}
+.lng-m a[aria-current]::after{content:"";width:16px;height:16px;flex:none;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 12.5l4 4 8-9' fill='none' stroke='%231E45B0' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/16px no-repeat}
+.flang{flex-basis:100%;display:flex;flex-wrap:wrap;gap:6px 18px;font-size:13.5px}
+.flang a{unicode-bidi:isolate;transition:color .15s}
+.flang a:hover,.flang a[aria-current]{color:var(--pri)}
+.flang a[aria-current]{font-weight:700}
+@media (max-width:560px){.lng summary{padding:0 8px;gap:5px}nav .wrap{gap:8px}}
+@media (max-width:440px){.lng summary>svg:first-child{display:none}.lng summary{padding:0 7px}nav .btn{padding:0 13px}.word{font-size:18px}.brand{gap:7px}.brand img{width:28px;height:28px}}
 </style>
 </head>
 <body>
 <nav><div class="wrap">
  <a href="#" class="brand" aria-label="SINAI Club"><img src="assets/icon.svg" alt=""><span class="word"><b>SINAI</b><span> Club</span></span></a>
  <div class="links"><a href="#features">יכולות</a><a href="#fit">לכל מועדון</a><a href="#managers">למנהלים</a><a href="#parents">להורים</a><a href="#security">אבטחה</a><a href="#setup">הקמה</a></div>
- <div style="display:flex;gap:8px;align-items:center"><a class="lang" href="en/" hreflang="en" lang="en" onclick="try{localStorage.setItem('sg-lang','en')}catch(e){}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3z"/></svg>English</a><a class="btn btn-ghost" href="#contact">תיאום הדגמה</a><a class="btn btn-lime" href="/app/">כניסה למערכת</a></div>
+ <div style="display:flex;gap:8px;align-items:center"><details class="lng"><summary class="lang" aria-label="שפה: עברית"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3z"/></svg><span>עברית</span><svg class="chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary><div class="lng-m"><a href="./" hreflang="he" lang="he" aria-current="page" onclick="try{localStorage.setItem('sg-lang','he')}catch(e){}">עברית</a><a href="en/" hreflang="en" lang="en" onclick="try{localStorage.setItem('sg-lang','en')}catch(e){}">English</a><a href="ru/" hreflang="ru" lang="ru" onclick="try{localStorage.setItem('sg-lang','ru')}catch(e){}">Русский</a><a href="ar/" hreflang="ar" lang="ar" onclick="try{localStorage.setItem('sg-lang','ar')}catch(e){}">العربية</a><a href="es/" hreflang="es" lang="es" onclick="try{localStorage.setItem('sg-lang','es')}catch(e){}">Español</a></div></details><a class="btn btn-ghost" href="#contact">תיאום הדגמה</a><a class="btn btn-lime" href="/app/">כניסה למערכת</a></div>
 </div></nav>
 
 <header class="hero">
@@ -539,7 +567,8 @@ footer .wrap{display:flex;justify-content:space-between;align-items:center;gap:1
 
 <footer><div class="wrap">
  <a href="#" class="brand" aria-label="SINAI Club"><img src="assets/icon.svg" alt="" style="width:26px;height:26px"><span class="word" style="font-size:17px"><b>SINAI</b><span> Club</span></span></a>
- <div>© <span id="yr">2026</span> SINAI Club · <a href="/parents/">להורים</a> · <a href="en/" hreflang="en" lang="en" onclick="try{localStorage.setItem('sg-lang','en')}catch(e){}">English</a> · <span class="mail" style="font-weight:400">hello@sinaiclub.com</span></div>
+ <div>© <span id="yr">2026</span> SINAI Club · <a href="/parents/">להורים</a> · <span class="mail" style="font-weight:400">hello@sinaiclub.com</span></div>
+ <div class="flang" aria-label="שפה"><a href="./" hreflang="he" lang="he" aria-current="page" onclick="try{localStorage.setItem('sg-lang','he')}catch(e){}">עברית</a><a href="en/" hreflang="en" lang="en" onclick="try{localStorage.setItem('sg-lang','en')}catch(e){}">English</a><a href="ru/" hreflang="ru" lang="ru" onclick="try{localStorage.setItem('sg-lang','ru')}catch(e){}">Русский</a><a href="ar/" hreflang="ar" lang="ar" onclick="try{localStorage.setItem('sg-lang','ar')}catch(e){}">العربية</a><a href="es/" hreflang="es" lang="es" onclick="try{localStorage.setItem('sg-lang','es')}catch(e){}">Español</a></div>
 </div></footer>
 <script>
 try{document.getElementById('yr').textContent=new Date().getFullYear();}catch(e){}
@@ -569,6 +598,10 @@ try{document.getElementById('yr').textContent=new Date().getFullYear();}catch(e)
   else{var io=new IntersectionObserver(function(es){es.forEach(function(en){if(en.isIntersecting){toss.classList.add('in');io.disconnect()}})},{threshold:.25});io.observe(toss)}
  }
 })();
+</script>
+<script>
+/* language menu: close on outside click / Escape */
+(function(){var d=document.querySelector('.lng');if(!d)return;document.addEventListener('click',function(e){if(d.open&&!d.contains(e.target))d.open=false});document.addEventListener('keydown',function(e){if(e.key==='Escape'&&d.open){d.open=false;d.querySelector('summary').focus()}})})();
 </script>
 </body>
 </html>
