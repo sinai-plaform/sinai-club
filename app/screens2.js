@@ -538,6 +538,8 @@ VIEWS.more = function(){
     <button class="btn big" onclick="openBoard()">▦ לוח טקטי</button>
     <button class="btn big" onclick="go('match')">🥅 מצב משחק</button>
     <button class="btn big" onclick="go('discipline')">📔 יומן משמעת</button>
+    ${typeof voiceInbox==='function'?`<button class="btn big" onclick="voiceInbox()">🎙 הערות קוליות לטיפול${vInbox().length?` (${vInbox().length})`:''}</button>
+    <button class="btn big" onclick="wakeSheet()">☀️ מסך דלוק: ${wakeLabel()}</button>`:''}
     <button class="btn big" onclick="go('broadcast')">💬 עדכון לקבוצת הוואטסאפ</button>
     <button class="btn big" onclick="go('parents')">👨‍👩‍👦 הורים והזמנות</button>
     <button class="btn big" onclick="go('docs')">📋 מסמכים וכשירות</button>

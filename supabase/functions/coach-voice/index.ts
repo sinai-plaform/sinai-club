@@ -1,0 +1,208 @@
+// SINAI Club — coach-voice (2.6.0)
+// A short voice note from the pitch (hold the mic, speak, let go) → Hebrew transcript →
+// structured notes: ratings (attribute + 1–5 score + weight), discipline entries, plain notes.
+// The audio is never stored: it lives only inside this request.
+// Secrets: OPENAI_API_KEY (required). Optional: OPENAI_STT_MODEL, OPENAI_TEXT_MODEL.
+import { createClient } from 'jsr:@supabase/supabase-js@2';
+
+const SB_URL = Deno.env.get('SUPABASE_URL')!;
+const SRK = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+const OAI = Deno.env.get('OPENAI_API_KEY') || '';
+const STT_MODEL = Deno.env.get('OPENAI_STT_MODEL') || 'gpt-4o-transcribe';
+const TEXT_MODEL = Deno.env.get('OPENAI_TEXT_MODEL') || 'gpt-4.1-mini';
+
+const CORS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+};
+const json = (b: unknown, s = 200) =>
+  new Response(JSON.stringify(b), { status: s, headers: { ...CORS, 'Content-Type': 'application/json' } });
+
+type Player = { id: string; name: string; no?: number | null; pos?: string | null; nick?: string | null };
+type Attr = { key: string; label: string };
+
+// how the coach talks → numbers. Examples, not a lookup table: the model generalises from them.
+const EXAMPLES = `
+"מסירה מעולה לעומק" → passing 5 (1), decisions 4 (0.6)
+"איבד כדור במסירה" → passing 2 (1)
+"החליף אגף יפה" → decisions 4 (1), passing 4 (0.5)
+"מסירה ארוכה מדויקת" → long_pass 5 (1)
+"הגבהה טובה לרחבה" → crossing 4 (1)
+"שיחק בנגיעה אחת" → passing 4 (1), first_touch 4 (0.4)
+"החזיק יותר מדי את הכדור" / "לא הרים את הראש" → decisions 2 (1)
+"קומבינציה יפה של יואב ואורי" → teamwork 5 (1) for BOTH players (one item, two player_ids)
+"קבלה מעולה בתנועה" → first_touch 5 (1); "הכדור ברח לו" / "נגיעה כבדה" → first_touch 2 (1)
+"הסתובב יפה תחת לחץ" → first_touch 5 (1), determination 4 (0.3)
+"עבר שחקן" → dribbling 4 (1); "עבר שניים" → dribbling 5 (1); "נתקע בכדרור" → dribbling 2 (1), decisions 2 (0.4)
+"מכסה את הכדור בגוף" → dribbling 4 (1), strength 4 (0.4)
+"שער" / "גמר בנגיעה אחת" → shooting 5 (1), first_touch 4 (0.3)
+"בעיטה למסגרת" → shooting 4 (1); "בעיטה מעל" / "החמיץ" → shooting 2 (0.6) — a miss is a normal part of the game, weight 0.6
+"פחד לבעוט" → determination 2 (1), shooting 3 (0.3)
+"נגיחה טובה" / "ניצח באוויר" → heading 4 (1)
+"חטיפה" → tackling 4 (1); "חטיפה ויצא להתקפה" → tackling 5 (1), decisions 4 (0.5); "נכנס מאוחר" → tackling 2 (1)
+"חסם בעיטה" / "לא ויתר" → determination 5 (1)
+"חזר להגן" → teamwork 5 (1), stamina 4 (0.4); "לא חזר" → determination 2 (1), teamwork 2 (0.5)
+"לחץ גבוה טוב" → determination 4 (1), teamwork 4 (0.5)
+"איבד את השחקן שלו" → focus 2 (1); "קרא את המשחק" → decisions 5 (1)
+"התייאש אחרי טעות" → determination 2 (1); "מנהיג, מדבר עם החברים" → leadership 5 (1)
+"מפוזר" / "לא מקשיב בהסבר" → focus 2 (1) or listening 2 (1)
+"הכי מהיר" → speed 5 (1); "נגמר לו האוויר" → stamina 2 (1); "זריז" → agility 5 (1); "נפל בכל מגע" → strength 2 (1)
+"הצלה" → gk_handling 4 (1); "הצלה כפולה" → gk_handling 5 (1); "יציאה טובה" → gk_positioning 5 (1); "ניהל את ההגנה" → gk_comm 5 (1), leadership 4 (0.4)
+"יואב שיחק היום" (overall praise) → decisions 4 (0.5), teamwork 4 (0.4), determination 4 (0.4)
+"יותר טוב מבפעם הקודמת ב-X" → X 4 (1)
+`;
+
+const SYSTEM = (players: Player[], attrs: Attr[], selected: string | null, ctx: string) => `
+You turn a football (soccer) coach's short spoken Hebrew note, recorded during youth training, into structured data.
+
+ROSTER (id | name | nickname | shirt | position):
+${players.map((p) => `${p.id} | ${p.name} | ${p.nick || ''} | ${p.no ?? ''} | ${p.pos || ''}`).join('\n')}
+
+ATTRIBUTES this team is rated on (key = label). Use ONLY these keys:
+${attrs.map((a) => `${a.key} = ${a.label}`).join('\n')}
+
+${selected ? `The coach tapped player ${selected} before speaking: a note that names nobody is about this player. A name said aloud wins over the tap.` : 'No player was tapped: identify players from the names said.'}
+${ctx ? `Context: ${ctx}` : ''}
+
+Return one item per distinct thing said about a player (or the whole team).
+- kind "rating": effects = [{attr, score 1–5, weight}]. Main attribute weight 1, secondary 0.2–0.6. Misses weight 0.6.
+  Scores: 5 excellent, 4 good, 3 ok, 2 weak, 1 very poor. Intensifiers ("ממש", "מטורף") push toward 5 or 1; softeners ("קצת", "די") toward 3. Negation flips ("לא מסר טוב" = weak).
+  Understand free phrasing and slang, not only the examples. Never invent attributes outside the list; if the closest attribute is not in the list, use the next closest that is, or make it a "note".
+- kind "discipline": behaviour, not football skill (late, didn't listen, rude, phone, argued, fought, no equipment, left without asking; or positive: helped a friend, sportsmanship, helped with equipment). discipline_kind = short Hebrew label, severity 1–3, positive true/false. No effects.
+- kind "note": anything else worth keeping with no score (pain, injury complaint, tired today, attendance). label = short Hebrew. No effects.
+- foot: if the note says which foot the player used ("עם שמאל", "ברגל ימין"), set "left"/"right", else "none". Do NOT add extra score for it — the app compares it with the player's real foot.
+- Players: player_ids = the players the item is about. If a spoken name matches several roster players (same first name) and nothing disambiguates (surname, nickname, shirt number, the tap), leave player_ids empty and put all matching ids in candidate_ids. If the name matches nobody, both empty.
+- who = "team" when the coach speaks about everyone ("כולם", "כל הקבוצה"); then player_ids empty, weights of effects at most 0.3.
+- label: a 2–5 word Hebrew summary of the item, as the coach would write it.
+- If the transcript contains nothing usable, return items: [].
+
+EXAMPLES (phrase → attr score (weight)):
+${EXAMPLES}`;
+
+const SCHEMA = {
+  name: 'coach_notes',
+  strict: true,
+  schema: {
+    type: 'object', additionalProperties: false, required: ['items'],
+    properties: {
+      items: {
+        type: 'array',
+        items: {
+          type: 'object', additionalProperties: false,
+          required: ['who', 'player_ids', 'candidate_ids', 'kind', 'label', 'effects', 'foot', 'discipline_kind', 'severity', 'positive'],
+          properties: {
+            who: { type: 'string', enum: ['player', 'team'] },
+            player_ids: { type: 'array', items: { type: 'string' } },
+            candidate_ids: { type: 'array', items: { type: 'string' } },
+            kind: { type: 'string', enum: ['rating', 'discipline', 'note'] },
+            label: { type: 'string' },
+            effects: {
+              type: 'array',
+              items: {
+                type: 'object', additionalProperties: false, required: ['attr', 'score', 'weight'],
+                properties: { attr: { type: 'string' }, score: { type: 'integer' }, weight: { type: 'number' } },
+              },
+            },
+            foot: { type: 'string', enum: ['left', 'right', 'none'] },
+            discipline_kind: { type: 'string' },
+            severity: { type: 'integer' },
+            positive: { type: 'boolean' },
+          },
+        },
+      },
+    },
+  },
+};
+
+function b64ToBytes(b64: string) {
+  const bin = atob(b64);
+  const out = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+  return out;
+}
+
+async function transcribe(bytes: Uint8Array, mime: string, players: Player[]) {
+  const ext = mime.includes('mp4') || mime.includes('aac') ? 'm4a' : mime.includes('ogg') ? 'ogg' : 'webm';
+  const fd = new FormData();
+  fd.append('file', new Blob([bytes], { type: mime || 'audio/webm' }), `note.${ext}`);
+  fd.append('model', STT_MODEL);
+  fd.append('language', 'he');
+  // the names help the recogniser spell the kids correctly
+  fd.append('prompt', 'מאמן כדורגל באימון ילדים. שמות: ' + players.map((p) => p.name + (p.nick ? ` (${p.nick})` : '')).join(', '));
+  const r = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+    method: 'POST', headers: { Authorization: `Bearer ${OAI}` }, body: fd,
+  });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error('תמלול נכשל: ' + (j?.error?.message || r.status));
+  return String(j.text || '').trim();
+}
+
+async function parse(text: string, players: Player[], attrs: Attr[], selected: string | null, ctx: string) {
+  const r = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${OAI}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: TEXT_MODEL,
+      temperature: 0.1,
+      response_format: { type: 'json_schema', json_schema: SCHEMA },
+      messages: [
+        { role: 'system', content: SYSTEM(players, attrs, selected, ctx) },
+        { role: 'user', content: text },
+      ],
+    }),
+  });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error('ניתוח נכשל: ' + (j?.error?.message || r.status));
+  try { return JSON.parse(j.choices[0].message.content).items || []; } catch { return []; }
+}
+
+Deno.serve(async (req) => {
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS });
+  if (req.method !== 'POST') return json({ error: 'POST only' }, 405);
+  if (!OAI) return json({ error: 'חסר מפתח OPENAI_API_KEY בהגדרות השרת' }, 500);
+
+  // only a signed-in coach of a club
+  const jwt = (req.headers.get('Authorization') || '').replace(/^Bearer\s+/i, '');
+  const admin = createClient(SB_URL, SRK, { auth: { persistSession: false } });
+  const { data: u } = await admin.auth.getUser(jwt);
+  if (!u?.user) return json({ error: 'לא מחובר' }, 401);
+  const { count } = await admin.from('coach_members').select('user_id', { count: 'exact', head: true }).eq('user_id', u.user.id).in('role', ['coach', 'assistant', 'manager']);
+  if (!count) return json({ error: 'רק מאמנים' }, 403);
+
+  let body: any;
+  try { body = await req.json(); } catch { return json({ error: 'בקשה לא תקינה' }, 400); }
+  const players: Player[] = (body.roster || []).slice(0, 80);
+  const attrs: Attr[] = (body.attrs || []).slice(0, 60);
+  const selected: string | null = body.selected || null;
+  const ctx = String(body.context || '').slice(0, 300);
+  if (!body.audio && !body.text) return json({ error: 'אין הקלטה' }, 400);
+
+  try {
+    const bytes = body.audio ? b64ToBytes(body.audio) : null;
+    if (bytes && bytes.length > 4_000_000) return json({ error: 'ההקלטה ארוכה מדי' }, 413);
+    const text = bytes ? await transcribe(bytes, String(body.mime || 'audio/webm'), players) : String(body.text);
+    if (!text) return json({ text: '', items: [] });
+
+    const raw = await parse(text, players, attrs, selected, ctx);
+    const ids = new Set(players.map((p) => p.id));
+    const keys = new Set(attrs.map((a) => a.key));
+    const clamp = (n: number, a: number, b: number) => Math.min(b, Math.max(a, n));
+    const items = raw.map((it: any) => ({
+      who: it.who === 'team' ? 'team' : 'player',
+      player_ids: (it.player_ids || []).filter((x: string) => ids.has(x)),
+      candidate_ids: (it.candidate_ids || []).filter((x: string) => ids.has(x)),
+      kind: ['rating', 'discipline', 'note'].includes(it.kind) ? it.kind : 'note',
+      label: String(it.label || '').slice(0, 60),
+      effects: (it.effects || []).filter((e: any) => keys.has(e.attr))
+        .map((e: any) => ({ attr: e.attr, score: clamp(Math.round(e.score), 1, 5), weight: clamp(+e.weight || 1, 0.1, 1) })),
+      foot: ['left', 'right'].includes(it.foot) ? it.foot : null,
+      discipline_kind: String(it.discipline_kind || '').slice(0, 40),
+      severity: clamp(Math.round(it.severity || 1), 1, 3),
+      positive: !!it.positive,
+    })).filter((it: any) => it.kind !== 'rating' || it.effects.length);
+    return json({ text, items });
+  } catch (e) {
+    return json({ error: (e as Error).message }, 502);
+  }
+});

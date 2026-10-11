@@ -94,6 +94,7 @@ function playerForm(p){
   p=p||{};
   sheet(`<h2>${p.id?'עריכת שחקן':'שחקן חדש'}</h2><div class="stack" style="margin-top:12px">
     <label class="f">שם מלא<input id="pn" value="${esc(p.name||'')}"></label>
+    <label class="f">כינוי (איך קוראים לו במגרש)<input id="pnick" value="${esc(p.nickname||'')}" placeholder="יואב הקטן"></label>
     <div class="grid2">
       <label class="f">מספר<input id="pno" type="number" class="num" value="${p.shirt_no||''}"></label>
       <label class="f">עמדה<select id="ppos">${['','שוער','בלם','מגן','קשר אחורי','קשר','קשר התקפי','כנף','חלוץ'].concat(p.position&&!['','שוער','בלם','מגן','קשר אחורי','קשר','קשר התקפי','כנף','חלוץ'].includes(p.position)?[p.position]:[]).map(x=>`<option ${x===p.position?'selected':''}>${x}</option>`).join('')}</select></label>
@@ -114,7 +115,7 @@ function playerForm(p){
   </div>`);
   $('#sv').onclick=async()=>{
     const name=$('#pn').value.trim(); if(!name) return toast('חסר שם');
-    const row={name, shirt_no:+$('#pno').value||null, position:$('#ppos').value||null, birth_date:$('#pbd').value||null,
+    const row={name, nickname:$('#pnick').value.trim()||null, shirt_no:+$('#pno').value||null, position:$('#ppos').value||null, birth_date:$('#pbd').value||null,
       parent_name:$('#pgn').value.trim()||null, parent_phone:$('#pgp').value.trim()||null,
       status:$('#pst').value, status_until:$('#psu').value||null,
       preferred_foot:$('#pft').value||null, weak_foot:+$('#pwf').value||null};

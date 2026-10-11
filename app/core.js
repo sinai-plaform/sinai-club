@@ -32,7 +32,7 @@ async function useToken(th){
   return error ? {error:error.message} : {user:data.user};
 }
 
-const APP_VERSION='2.5.0';
+const APP_VERSION='2.6.0';
 const S = { user:null, club:null, role:null, teams:[], team:null, players:[], attrs:[], dbDrills:[],
             session:null, sessionDrills:[], attendance:{}, match:null, view:'home', online:navigator.onLine };
 
@@ -171,6 +171,7 @@ const TAGS=[
  {g:'tech',t:'סיום טוב',a:'shooting',s:5,good:1,fx:[['first_touch',4,.3]]},{g:'tech',t:'בעיטה למסגרת',a:'shooting',s:4,good:1},{g:'tech',t:'החמצה',a:'shooting',s:2,w:.6,fx:[]},
  {g:'tech',t:'נגיחה טובה',a:'heading',s:4,good:1},{g:'tech',t:'נמנע מנגיחה',a:'heading',s:2},
  {g:'tech',t:'ארוכה מדויקת',a:'long_pass',s:5,good:1},{g:'tech',t:'ארוכה לא מדויקת',a:'long_pass',s:2},
+ {g:'tech',t:'הגבהה מדויקת',a:'crossing',s:5,good:1},{g:'tech',t:'הגבהה לא מדויקת',a:'crossing',s:2},
  {g:'tech',t:'תיקול נקי',a:'tackling',s:5,good:1,fx:[['decisions',4,.3]]},{g:'tech',t:'עבירה מיותרת',a:'tackling',s:2,fx:[['decisions',2,.4]]},
  {g:'tech',t:'שליטה יפה בכדור',a:'ball_control',s:5,good:1},{g:'tech',t:'הכדור בורח לו',a:'ball_control',s:2},
  // מנטלי
@@ -205,7 +206,7 @@ function notesPanel(pid){
   const tags=tagsForTeam(p.position==='שוער');
   NOTE_LOG=[];
   const groups=['gk','tech','mental','phys'].filter(g=>tags.some(t=>t.g===g));
-  return `<div class="notes">${groups.map(g=>`<div class="ngrp"><p class="xs muted">${NOTE_GRP[g]}</p>
+  return `<div class="notes">${typeof voiceBtn==='function'?voiceBtn(pid):''}${groups.map(g=>`<div class="ngrp"><p class="xs muted">${NOTE_GRP[g]}</p>
     <div class="nbtns">${tags.filter(t=>t.g===g).map(t=>{const i=TAGS.indexOf(t);
       return `<button class="nb ${t.good?'up':'dn'}" onclick="tapNote('${pid}',${i},this)">${esc(t.t)}</button>`;}).join('')}</div></div>`).join('')}
     <div class="spread" style="margin-top:8px"><span class="xs muted" id="nlog">כל הקשה נשמרת כנתון בכרטיס השחקן</span>
@@ -233,10 +234,10 @@ async function undoNote(){
 
 /* ---------- observations ---------- */
 async function addObs(playerId, attribute, score, extra){
-  const row={id:uid(),player_id:playerId,team_id:S.team?.id||null,attribute,score,
+  const row={id:uid(),player_id:playerId,team_id:(extra&&extra.team_id)||S.team?.id||null,attribute,score,
     source:(extra&&extra.source)||'drill',session_id:(extra&&extra.session_id)||S.session?.id||null,
     match_id:(extra&&extra.match_id)||null,drill_id:(extra&&extra.drill_id)||null,
-    tag:(extra&&extra.tag)||null,note:(extra&&extra.note)||null,by_user:S.user?.id||null,at:new Date().toISOString(),
+    tag:(extra&&extra.tag)||null,note:(extra&&extra.note)||null,by_user:S.user?.id||null,at:(extra&&extra.at)||new Date().toISOString(),
     weight:(extra&&extra.weight)||1};
   LOCAL_OBS.push(row); LS('obs',LOCAL_OBS.slice(-800));
   await push('coach_observations',row);
