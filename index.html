@@ -11,6 +11,10 @@
 <link rel="alternate" hreflang="ru" href="https://sinaiclub.com/ru/">
 <link rel="alternate" hreflang="ar" href="https://sinaiclub.com/ar/">
 <link rel="alternate" hreflang="es" href="https://sinaiclub.com/es/">
+<link rel="alternate" hreflang="de" href="https://sinaiclub.com/de/">
+<link rel="alternate" hreflang="fr" href="https://sinaiclub.com/fr/">
+<link rel="alternate" hreflang="it" href="https://sinaiclub.com/it/">
+<link rel="alternate" hreflang="pt" href="https://sinaiclub.com/pt/">
 <link rel="alternate" hreflang="x-default" href="https://sinaiclub.com/">
 <link rel="icon" type="image/svg+xml" href="assets/icon.svg">
 <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
@@ -24,6 +28,10 @@
 <meta property="og:locale:alternate" content="ru_RU">
 <meta property="og:locale:alternate" content="ar_AR">
 <meta property="og:locale:alternate" content="es_ES">
+<meta property="og:locale:alternate" content="de_DE">
+<meta property="og:locale:alternate" content="fr_FR">
+<meta property="og:locale:alternate" content="it_IT">
+<meta property="og:locale:alternate" content="pt_BR">
 <script>
 /* returning users go straight into the app */
 (function(){try{
@@ -38,7 +46,7 @@ document.documentElement.className+=' js';
 </script>
 <script id="lang-auto">
 /* language: a saved choice (sg-lang) wins; otherwise the first supported browser language, with English in Israel shown in Hebrew; no match → Hebrew in Israel, English elsewhere (skipped when already heading into the app) */
-if(!window.__scApp)(function(H,P){var s=null;try{s=localStorage.getItem('sg-lang')}catch(e){}function il(){try{return Intl.DateTimeFormat().resolvedOptions().timeZone==='Asia/Jerusalem'}catch(e){return false}}function pick(){var ls=navigator.languages||[navigator.language||''];for(var i=0;i<ls.length;i++){var c=(ls[i]||'').slice(0,2).toLowerCase();if(c==='iw')c='he';if(P[c])return(c==='en'&&il())?'he':c}return il()?'he':'en'}var w=(s&&P[s])?s:pick();if(w!==H)location.replace(P[w]+location.search+location.hash)})('he',{he:'/',en:'/en/',ru:'/ru/',ar:'/ar/',es:'/es/'});
+if(!window.__scApp)(function(H,P){var s=null;try{s=localStorage.getItem('sg-lang')}catch(e){}function il(){try{return Intl.DateTimeFormat().resolvedOptions().timeZone==='Asia/Jerusalem'}catch(e){return false}}function pick(){var ls=navigator.languages||[navigator.language||''];for(var i=0;i<ls.length;i++){var c=(ls[i]||'').slice(0,2).toLowerCase();if(c==='iw')c='he';if(P[c])return(c==='en'&&il())?'he':c}return il()?'he':'en'}var w=(s&&P[s])?s:pick();if(w!==H)location.replace(P[w]+location.search+location.hash)})('he',{he:'/',en:'/en/',ru:'/ru/',ar:'/ar/',es:'/es/',de:'/de/',fr:'/fr/',it:'/it/',pt:'/pt/'});
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -384,7 +392,7 @@ footer .wrap{display:flex;justify-content:space-between;align-items:center;gap:1
 <nav><div class="wrap">
  <a href="#" class="brand" aria-label="SINAI Club"><img src="assets/icon.svg" alt=""><span class="word"><b>SINAI</b><span> Club</span></span></a>
  <div class="links"><a href="#features">יכולות</a><a href="#fit">לכל מועדון</a><a href="#managers">למנהלים</a><a href="#parents">להורים</a><a href="#security">אבטחה</a><a href="#setup">הקמה</a></div>
- <div style="display:flex;gap:8px;align-items:center"><details class="lng"><summary class="lang" aria-label="שפה: עברית"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3z"/></svg><span>עברית</span><svg class="chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary><div class="lng-m"><a href="./" hreflang="he" lang="he" aria-current="page" onclick="try{localStorage.setItem('sg-lang','he')}catch(e){}">עברית</a><a href="en/" hreflang="en" lang="en" onclick="try{localStorage.setItem('sg-lang','en')}catch(e){}">English</a><a href="ru/" hreflang="ru" lang="ru" onclick="try{localStorage.setItem('sg-lang','ru')}catch(e){}">Русский</a><a href="ar/" hreflang="ar" lang="ar" onclick="try{localStorage.setItem('sg-lang','ar')}catch(e){}">العربية</a><a href="es/" hreflang="es" lang="es" onclick="try{localStorage.setItem('sg-lang','es')}catch(e){}">Español</a></div></details><a class="btn btn-ghost" href="#contact">תיאום הדגמה</a><a class="btn btn-lime" href="/app/">כניסה למערכת</a></div>
+ <div style="display:flex;gap:8px;align-items:center"><details class="lng"><summary class="lang" aria-label="שפה: עברית"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3z"/></svg><span>עברית</span><svg class="chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary><div class="lng-m"><a href="./" hreflang="he" lang="he" aria-current="page" onclick="try{localStorage.setItem('sg-lang','he')}catch(e){}">עברית</a><a href="en/" hreflang="en" lang="en" onclick="try{localStorage.setItem('sg-lang','en')}catch(e){}">English</a><a href="ru/" hreflang="ru" lang="ru" onclick="try{localStorage.setItem('sg-lang','ru')}catch(e){}">Русский</a><a href="ar/" hreflang="ar" lang="ar" onclick="try{localStorage.setItem('sg-lang','ar')}catch(e){}">العربية</a><a href="es/" hreflang="es" lang="es" onclick="try{localStorage.setItem('sg-lang','es')}catch(e){}">Español</a><a href="de/" hreflang="de" lang="de" onclick="try{localStorage.setItem('sg-lang','de')}catch(e){}">Deutsch</a><a href="fr/" hreflang="fr" lang="fr" onclick="try{localStorage.setItem('sg-lang','fr')}catch(e){}">Français</a><a href="it/" hreflang="it" lang="it" onclick="try{localStorage.setItem('sg-lang','it')}catch(e){}">Italiano</a><a href="pt/" hreflang="pt" lang="pt" onclick="try{localStorage.setItem('sg-lang','pt')}catch(e){}">Português</a></div></details><a class="btn btn-ghost" href="#contact">תיאום הדגמה</a><a class="btn btn-lime" href="/app/">כניסה למערכת</a></div>
 </div></nav>
 
 <header class="hero">
@@ -425,14 +433,14 @@ footer .wrap{display:flex;justify-content:space-between;align-items:center;gap:1
 </header>
 
 <div class="ind" aria-label="למי זה מתאים"><div class="marq" id="marq">
- <span>גן חובה</span><span>א׳–ב׳</span><span>ג׳–ד׳</span><span>ה׳–ז׳</span><span>נוער</span><span>בתי ספר לכדורגל</span><span>מועדונים</span><span>אקדמיות</span><span>ליגות ילדים</span><span>מתנ״סים</span><span>מאמנים פרטיים</span><span>קבוצות בנות</span>
- <span aria-hidden="true">גן חובה</span><span aria-hidden="true">א׳–ב׳</span><span aria-hidden="true">ג׳–ד׳</span><span aria-hidden="true">ה׳–ז׳</span><span aria-hidden="true">נוער</span><span aria-hidden="true">בתי ספר לכדורגל</span><span aria-hidden="true">מועדונים</span><span aria-hidden="true">אקדמיות</span><span aria-hidden="true">ליגות ילדים</span><span aria-hidden="true">מתנ״סים</span><span aria-hidden="true">מאמנים פרטיים</span><span aria-hidden="true">קבוצות בנות</span>
- <span aria-hidden="true">גן חובה</span><span aria-hidden="true">א׳–ב׳</span><span aria-hidden="true">ג׳–ד׳</span><span aria-hidden="true">ה׳–ז׳</span><span aria-hidden="true">נוער</span><span aria-hidden="true">בתי ספר לכדורגל</span><span aria-hidden="true">מועדונים</span><span aria-hidden="true">אקדמיות</span><span aria-hidden="true">ליגות ילדים</span><span aria-hidden="true">מתנ״סים</span><span aria-hidden="true">מאמנים פרטיים</span><span aria-hidden="true">קבוצות בנות</span>
- <span aria-hidden="true">גן חובה</span><span aria-hidden="true">א׳–ב׳</span><span aria-hidden="true">ג׳–ד׳</span><span aria-hidden="true">ה׳–ז׳</span><span aria-hidden="true">נוער</span><span aria-hidden="true">בתי ספר לכדורגל</span><span aria-hidden="true">מועדונים</span><span aria-hidden="true">אקדמיות</span><span aria-hidden="true">ליגות ילדים</span><span aria-hidden="true">מתנ״סים</span><span aria-hidden="true">מאמנים פרטיים</span><span aria-hidden="true">קבוצות בנות</span>
+ <span>גן חובה</span><span>א׳–ב׳</span><span>ג׳–ד׳</span><span>ה׳–ו׳</span><span>ז׳–י׳</span><span>נוער</span><span>בתי ספר לכדורגל</span><span>מועדונים</span><span>אקדמיות</span><span>ליגות ילדים</span><span>מתנ״סים</span><span>מאמנים פרטיים</span><span>קבוצות בנות</span>
+ <span aria-hidden="true">גן חובה</span><span aria-hidden="true">א׳–ב׳</span><span aria-hidden="true">ג׳–ד׳</span><span aria-hidden="true">ה׳–ו׳</span><span aria-hidden="true">ז׳–י׳</span><span aria-hidden="true">נוער</span><span aria-hidden="true">בתי ספר לכדורגל</span><span aria-hidden="true">מועדונים</span><span aria-hidden="true">אקדמיות</span><span aria-hidden="true">ליגות ילדים</span><span aria-hidden="true">מתנ״סים</span><span aria-hidden="true">מאמנים פרטיים</span><span aria-hidden="true">קבוצות בנות</span>
+ <span aria-hidden="true">גן חובה</span><span aria-hidden="true">א׳–ב׳</span><span aria-hidden="true">ג׳–ד׳</span><span aria-hidden="true">ה׳–ו׳</span><span aria-hidden="true">ז׳–י׳</span><span aria-hidden="true">נוער</span><span aria-hidden="true">בתי ספר לכדורגל</span><span aria-hidden="true">מועדונים</span><span aria-hidden="true">אקדמיות</span><span aria-hidden="true">ליגות ילדים</span><span aria-hidden="true">מתנ״סים</span><span aria-hidden="true">מאמנים פרטיים</span><span aria-hidden="true">קבוצות בנות</span>
+ <span aria-hidden="true">גן חובה</span><span aria-hidden="true">א׳–ב׳</span><span aria-hidden="true">ג׳–ד׳</span><span aria-hidden="true">ה׳–ו׳</span><span aria-hidden="true">ז׳–י׳</span><span aria-hidden="true">נוער</span><span aria-hidden="true">בתי ספר לכדורגל</span><span aria-hidden="true">מועדונים</span><span aria-hidden="true">אקדמיות</span><span aria-hidden="true">ליגות ילדים</span><span aria-hidden="true">מתנ״סים</span><span aria-hidden="true">מאמנים פרטיים</span><span aria-hidden="true">קבוצות בנות</span>
 </div></div>
 
 <section id="features"><div class="wrap">
- <div class="sh"><div class="kicker">יכולות</div><h2>כל מה שקורה במגרש — באפליקציה אחת.</h2><p>SINAI Club נבנתה על המגרש, יחד עם מאמנים, סביב מה שבאמת קורה באימון — ולא סביב טבלאות במשרד.</p></div>
+ <div class="sh"><div class="kicker">יכולות</div><h2>כל מה שקורה במגרש — באפליקציה אחת.</h2><p>SINAI Club נולדה על המגרש: לירן בנה אותה מתוך הניסיון האישי שלו — יותר מעשור כמאמן, מגן חובה ועד כיתה י׳ — סביב מה שבאמת קורה באימון, ולא סביב טבלאות במשרד.</p></div>
  <div class="bento">
   <div class="b w4 feature">
    <svg class="mini-pitch" viewBox="0 0 300 190" aria-hidden="true"><line class="ln" x1="236" y1="0" x2="236" y2="190"/><circle class="ln" cx="236" cy="86" r="42"/><path class="ln" d="M0 40h46v92H0"/><path class="run" d="M34 150 C 70 150, 90 110, 120 100 S 170 70, 200 34"/><circle class="pl" cx="34" cy="150" r="6"/><circle class="pl" cx="120" cy="100" r="6"/><circle class="pl" cx="200" cy="34" r="6"/><path class="cn" d="M84 62l5-11 5 11z"/><path class="cn" d="M160 140l5-11 5 11z"/></svg>
@@ -569,8 +577,8 @@ footer .wrap{display:flex;justify-content:space-between;align-items:center;gap:1
 
 <footer><div class="wrap">
  <a href="#" class="brand" aria-label="SINAI Club"><img src="assets/icon.svg" alt="" style="width:26px;height:26px"><span class="word" style="font-size:17px"><b>SINAI</b><span> Club</span></span></a>
- <div>© <span id="yr">2026</span> SINAI Club · <a href="/parents/">להורים</a> · <span class="mail" style="font-weight:400">hello@sinaiclub.com</span></div>
- <div class="flang" aria-label="שפה"><a href="./" hreflang="he" lang="he" aria-current="page" onclick="try{localStorage.setItem('sg-lang','he')}catch(e){}">עברית</a><a href="en/" hreflang="en" lang="en" onclick="try{localStorage.setItem('sg-lang','en')}catch(e){}">English</a><a href="ru/" hreflang="ru" lang="ru" onclick="try{localStorage.setItem('sg-lang','ru')}catch(e){}">Русский</a><a href="ar/" hreflang="ar" lang="ar" onclick="try{localStorage.setItem('sg-lang','ar')}catch(e){}">العربية</a><a href="es/" hreflang="es" lang="es" onclick="try{localStorage.setItem('sg-lang','es')}catch(e){}">Español</a></div>
+ <div>© <span id="yr">2026</span> SINAI Club · <a href="/parents/">להורים</a> · <span class="mail" style="font-weight:400">hello@sinaiclub.com</span> · <a href="https://sinai-global.com/he/" class="sg-co">חברה בקבוצת SINAI Global</a></div>
+ <div class="flang" aria-label="שפה"><a href="./" hreflang="he" lang="he" aria-current="page" onclick="try{localStorage.setItem('sg-lang','he')}catch(e){}">עברית</a><a href="en/" hreflang="en" lang="en" onclick="try{localStorage.setItem('sg-lang','en')}catch(e){}">English</a><a href="ru/" hreflang="ru" lang="ru" onclick="try{localStorage.setItem('sg-lang','ru')}catch(e){}">Русский</a><a href="ar/" hreflang="ar" lang="ar" onclick="try{localStorage.setItem('sg-lang','ar')}catch(e){}">العربية</a><a href="es/" hreflang="es" lang="es" onclick="try{localStorage.setItem('sg-lang','es')}catch(e){}">Español</a><a href="de/" hreflang="de" lang="de" onclick="try{localStorage.setItem('sg-lang','de')}catch(e){}">Deutsch</a><a href="fr/" hreflang="fr" lang="fr" onclick="try{localStorage.setItem('sg-lang','fr')}catch(e){}">Français</a><a href="it/" hreflang="it" lang="it" onclick="try{localStorage.setItem('sg-lang','it')}catch(e){}">Italiano</a><a href="pt/" hreflang="pt" lang="pt" onclick="try{localStorage.setItem('sg-lang','pt')}catch(e){}">Português</a></div>
 </div></footer>
 <script>
 try{document.getElementById('yr').textContent=new Date().getFullYear();}catch(e){}

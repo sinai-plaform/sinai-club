@@ -32,7 +32,7 @@ async function useToken(th){
   return error ? {error:error.message} : {user:data.user};
 }
 
-const APP_VERSION='2.7.0';
+const APP_VERSION='2.8.0';
 const S = { user:null, club:null, role:null, teams:[], team:null, players:[], attrs:[], dbDrills:[],
             session:null, sessionDrills:[], attendance:{}, match:null, view:'home', online:navigator.onLine };
 

@@ -1722,5 +1722,9 @@ I18N.add("es",{
 "לה מאסיה · FCB": "La Masia · FCB",
 "ה׳–ז׳ · לחץ ומעברים": "10–12 años · presión y transiciones",
 "חימום לחץ → רונדו מעבר → מלכודת → משחק": "Calentamiento de presión → rondo de transición → trampa → partido",
-"שפה": "Idioma"
+"שפה": "Idioma",
+"לה מאסיה": "La Masia",
+"סיירולו": "Seirul·lo",
+"כללי": "General",
+"גיל רך": "edades tempranas"
 });

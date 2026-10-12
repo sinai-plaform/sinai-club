@@ -127,10 +127,13 @@ function b64ToBytes(b64: string) {
   return out;
 }
 
-const LANG_NAME: Record<string, string> = { he: 'Hebrew', en: 'English', ru: 'Russian', ar: 'Arabic', es: 'Spanish' };
+const LANG_NAME: Record<string, string> = { he: 'Hebrew', en: 'English', ru: 'Russian', ar: 'Arabic', es: 'Spanish',
+  de: 'German', fr: 'French', it: 'Italian', pt: 'Portuguese' };
 const STT_PROMPT: Record<string, string> = {
   he: 'מאמן כדורגל באימון ילדים. שמות: ', en: 'Youth football coach at training. Names: ', ru: 'Детский футбольный тренер на тренировке. Имена: ',
-  ar: 'مدرب كرة قدم في تدريب أطفال. الأسماء: ', es: 'Entrenador de fútbol infantil en el entrenamiento. Nombres: ' };
+  ar: 'مدرب كرة قدم في تدريب أطفال. الأسماء: ', es: 'Entrenador de fútbol infantil en el entrenamiento. Nombres: ',
+  de: 'Jugendfußballtrainer im Training. Namen: ', fr: 'Entraîneur de football des jeunes à l’entraînement. Prénoms : ',
+  it: 'Allenatore di calcio giovanile in allenamento. Nomi: ', pt: 'Treinador de futebol de base no treino. Nomes: ' };
 
 async function transcribe(bytes: Uint8Array, mime: string, players: Player[], lang = 'he') {
   const ext = mime.includes('mp4') || mime.includes('aac') ? 'm4a' : mime.includes('ogg') ? 'ogg' : 'webm';

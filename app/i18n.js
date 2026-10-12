@@ -1,4 +1,4 @@
-/* ===== SINAI Club — languages (he · en · ru · ar · es) =====
+/* ===== SINAI Club — languages (he · en · ru · ar · es · de · fr · it · pt) =====
    Hebrew is the source language: every screen is still written in Hebrew, and this layer
    translates what reaches the page — text, placeholders, titles, toasts, confirm boxes and
    WhatsApp texts — from a dictionary keyed by the Hebrew text itself. Anything without a
@@ -13,7 +13,8 @@
    • pitch drawings are SVG with fixed coordinates — they never mirror; only labels change */
 (function(){
 const LANGS={he:{name:'עברית',dir:'rtl',loc:'he-IL'},en:{name:'English',dir:'ltr',loc:'en-GB'},
-  ru:{name:'Русский',dir:'ltr',loc:'ru-RU'},ar:{name:'العربية',dir:'rtl',loc:'ar-u-nu-latn'},es:{name:'Español',dir:'ltr',loc:'es-ES'}};
+  ru:{name:'Русский',dir:'ltr',loc:'ru-RU'},ar:{name:'العربية',dir:'rtl',loc:'ar-u-nu-latn'},es:{name:'Español',dir:'ltr',loc:'es-ES'},
+  de:{name:'Deutsch',dir:'ltr',loc:'de-DE'},fr:{name:'Français',dir:'ltr',loc:'fr-FR'},it:{name:'Italiano',dir:'ltr',loc:'it-IT'},pt:{name:'Português',dir:'ltr',loc:'pt-BR'}};
 const HE=/[֐-׿]/;
 const norm=s=>String(s).replace(/\s+/g,' ').trim();
 function pickLang(){

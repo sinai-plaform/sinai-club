@@ -1722,5 +1722,9 @@ I18N.add("en",{
 "לה מאסיה · FCB": "La Masia · FCB",
 "ה׳–ז׳ · לחץ ומעברים": "Ages 10–12 · pressing and transitions",
 "חימום לחץ → רונדו מעבר → מלכודת → משחק": "Pressing warm-up → transition rondo → trap → game",
-"שפה": "Language"
+"שפה": "Language",
+"לה מאסיה": "La Masia",
+"סיירולו": "Seirul·lo",
+"כללי": "General",
+"גיל רך": "early years"
 });
