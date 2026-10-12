@@ -1,0 +1,27 @@
+/* Signature hero background (2026-10) — the sinai-global method, Club motif:
+   faint pitch lines in gentle perspective + dashed pass arcs (assets/pitch.svg, made by
+   ~/.claude/skills/landing-page-builder/scripts/pitch_field.py), anchored on a centre-spot focal dot. */
+:root{--pitch-ink:rgba(13,31,79,.11);--pitch-glow:rgba(77,124,240,.13);--spot-ring:rgba(77,124,240,.22)}
+html,body{overflow-x:clip}
+/* film grain over the whole page */
+body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:50;opacity:.05;mix-blend-mode:overlay;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+.hero-copy{position:relative;z-index:1}
+/* the centre spot: the pitch drawing hangs off it, so the two can never drift apart */
+.spot{position:absolute;z-index:0;left:44%;top:30px;width:12px;height:12px;pointer-events:none}
+.spot::before{content:"";position:absolute;left:50%;top:50%;width:1400px;height:1100px;transform:translate(-50%,-50%);
+  background:var(--pitch-ink);-webkit-mask:url(pitch.svg) center/contain no-repeat;mask:url(pitch.svg) center/contain no-repeat}
+.spot::after{content:"";position:absolute;left:50%;top:50%;width:900px;height:700px;transform:translate(-50%,-50%);
+  background:radial-gradient(closest-side,var(--pitch-glow),transparent);z-index:-1}
+.spot i{position:absolute;inset:0;border-radius:50%;background:var(--pri);box-shadow:0 0 0 5px var(--spot-ring)}
+@media (max-width:560px){
+  .spot{left:50%;top:-26px}
+  .spot::before{width:1050px;height:825px}
+  .spot::after{width:600px;height:480px}
+}
+@media (prefers-reduced-motion:no-preference){
+  .spot::before{animation:pitchDrift 40s ease-in-out infinite alternate}
+  @keyframes pitchDrift{from{transform:translate(-50%,-50%) scale(1) rotate(0)}to{transform:translate(-50%,-50%) scale(1.06) rotate(3deg)}}
+  .spot i{animation:spotPing 3s ease-out infinite}
+  @keyframes spotPing{0%{box-shadow:0 0 0 0 rgba(77,124,240,.45),0 0 0 5px var(--spot-ring)}100%{box-shadow:0 0 0 24px rgba(77,124,240,0),0 0 0 5px var(--spot-ring)}}
+}
