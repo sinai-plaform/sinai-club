@@ -100,7 +100,7 @@ function demoBox(diag, id, name){
       if(stop){ stop(); stop=null; st.innerHTML=svgDiag(diag); btn.textContent='▶ הדגמה'; return; }
       stop=playDiag(st, diag); btn.textContent='⏸ עצירה';
     };
-    if(vid) vid.onclick=()=>recordDiag(diag, box.dataset.name||'תרגיל', vid);
+    if(vid) vid.onclick=()=>recordDiag(diag, I18N.tr(box.dataset.name||'תרגיל'), vid);
   },0);
   return `<div class="demo" id="${k}" data-name="${esc(name||'')}">
     <div class="dstage">${svgDiag(diag)}</div>
@@ -128,8 +128,9 @@ async function recordDiag(diag, name, btn){
   const draw=t=>new Promise(res=>{
     const svg=cssVarsResolved(svgDiag(animFrame(plan,t))).replace('<svg ','<svg width="1200" height="800" ');
     img.onload=()=>{ cx.fillStyle='#0D1F4F'; cx.fillRect(0,0,W,H); cx.drawImage(img,0,80,W,800);
-      cx.fillStyle='#fff'; cx.font='bold 40px Heebo, Arial'; cx.textAlign='right'; cx.direction='rtl';
-      cx.fillText(name, W-30, 55); cx.font='26px Heebo, Arial'; cx.textAlign='left'; cx.fillStyle='#B9EE3E'; cx.fillText('SINAI Club', 30, 52); res(); };
+      const rtl=I18N.dir()==='rtl';
+      cx.fillStyle='#fff'; cx.font='bold 40px Heebo, Arial'; cx.direction=I18N.dir(); cx.textAlign=rtl?'right':'left';
+      cx.fillText(name, rtl?W-30:30, 55); cx.font='26px Heebo, Arial'; cx.direction='ltr'; cx.textAlign=rtl?'left':'right'; cx.fillStyle='#B9EE3E'; cx.fillText('SINAI Club', rtl?30:W-30, 52); res(); };
     img.onerror=()=>res();
     img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
   });

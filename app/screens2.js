@@ -5,7 +5,7 @@ let LF={age:null,cat:null,q:''};
 VIEWS.library = function(){
   if(!LF.age && S.team) LF.age=S.team.age_profile;
   const list=allDrills().filter(d=>(!LF.age||d.ages.includes(LF.age))&&(!LF.cat||d.cat===LF.cat)
-    &&(!LF.q||[d.name,d.desc,d.src,...(d.points||[])].join(' ').includes(LF.q)));
+    &&(!LF.q||[d.name,d.desc,d.src,...(d.points||[])].map(x=>x+' '+I18N.tr(x||'')).join(' ').toLowerCase().includes(LF.q.toLowerCase())));
   screen('ספריית תרגילים', `
     <div class="stack">
       <input id="lq" type="search" placeholder="חיפוש תרגיל, דגש, שיטה…" value="${esc(LF.q)}">
@@ -41,6 +41,8 @@ function setLF(k,v){LF[k]=LF[k]===v?null:v;go('library');}
 /* the full set of drill fields — used by the drill form and under the tactics board */
 function drillFieldsHtml(d){
   d=d||{};
+  if(!d.mine && I18N.lang!=='he'){ const T=x=>I18N.tr(x||''); d={...d,name:T(d.name),equip:T(d.equip),setup:T(d.setup),desc:T(d.desc),
+    points:(d.points||[]).map(T),prog:(d.prog||[]).map(T)}; }   // a copy of a library drill starts in the coach's language
   const ages=d.ages||[S.team?.age_profile||'b'];
   return `<label class="f">שם<input id="dn" value="${esc(d.name||'')}"></label>
     <div class="grid2">
@@ -155,7 +157,7 @@ function renderSplit(){
     </div>
     ${pool.filter(p=>!sp.a.includes(p.id)&&!sp.b.includes(p.id)).length?`<div class="hd"><h2>לשבץ</h2></div>
       <div class="tiles">${pool.filter(p=>!sp.a.includes(p.id)&&!sp.b.includes(p.id)).map(p=>`
-        <div class="tile"><b>${esc(p.name.split(' ')[0])}</b>
+        <div class="tile"><b><span translate="no">${esc(p.name.split(' ')[0])}</span></b>
           <div class="row" style="gap:4px;margin-top:5px;justify-content:center">
             <button class="btn sm" style="padding:3px 9px;color:var(--ta)" onclick="assign('${p.id}','a')">א׳</button>
             <button class="btn sm" style="padding:3px 9px;color:var(--tb)" onclick="assign('${p.id}','b')">ב׳</button></div></div>`).join('')}</div>`:''}
@@ -164,7 +166,7 @@ function renderSplit(){
 }
 function pRow(id,side){const p=S.players.find(x=>x.id===id)||{name:'—'};
   return `<div class="row" style="gap:6px"><div class="av ${side}" style="width:28px;height:28px;font-size:11px">${esc(initials(p.name))}</div>
-    <span class="sm" style="flex:1">${esc(p.name)}</span>
+    <span class="sm" style="flex:1"><span translate="no">${esc(p.name)}</span></span>
     <button class="btn sm ghost" style="padding:2px 8px" onclick="assign('${id}','${side==='a'?'b':'a'}')">⇄</button></div>`;}
 function assign(id,side){
   const sp=MATCH.split; sp.a=sp.a.filter(x=>x!==id); sp.b=sp.b.filter(x=>x!==id); sp[side].push(id); renderSplit();
@@ -208,14 +210,14 @@ function drawMatchTiles(){
   const draw=(ids,cls)=>ids.map(id=>{const p=S.players.find(x=>x.id===id);if(!p)return'';
     const n=LOCAL_OBS.filter(o=>o.player_id===id&&o.match_id===S.match.id).length;
     return `<button class="tile t${cls}" onclick="matchTap('${id}')">${n?`<span class="cnt">${n}</span>`:''}
-      <b>${esc(p.name.split(' ')[0])}</b><span class="xs muted">${p.shirt_no?'#'+p.shirt_no:''}</span></button>`;}).join('');
+      <b><span translate="no">${esc(p.name.split(' ')[0])}</span></b><span class="xs muted">${p.shirt_no?'#'+p.shirt_no:''}</span></button>`;}).join('');
   if($('#tilesA'))$('#tilesA').innerHTML=draw(sp.a,'a');
   if($('#tilesB'))$('#tilesB').innerHTML=draw(sp.b,'b');
 }
 function matchTap(pid){
   const p=S.players.find(x=>x.id===pid);
   const side=S.match.split.a.includes(pid)?'a':'b';
-  sheet(`<h2>${esc(p.name)}</h2>
+  sheet(`<h2><span translate="no">${esc(p.name)}</span></h2>
     <div class="grid2" style="margin-top:12px">
       <button class="btn primary" onclick="mEvent('${pid}','goal','${side}')">⚽ שער</button>
       <button class="btn" onclick="mEvent('${pid}','assist','${side}')">🅰️ בישול</button>
@@ -250,7 +252,7 @@ function endMatch(){
     if(i>=all.length){ finishMatch(); return; }
     const p=S.players.find(x=>x.id===all[i]);
     if(!p){i++;return step();}
-    sheet(`<p class="xs muted">ציון משחק ${i+1}/${all.length}</p><h2>${esc(p.name)}</h2>
+    sheet(`<p class="xs muted">ציון משחק ${i+1}/${all.length}</p><h2><span translate="no">${esc(p.name)}</span></h2>
       <div class="scorerow" style="margin-top:12px;grid-template-columns:repeat(5,1fr)">
         ${[6,7,8,9,10].map(v=>`<button onclick="mRate('${p.id}',${v})">${v}</button>`).join('')}</div>
       <div class="scorerow" style="margin-top:6px;grid-template-columns:repeat(5,1fr)">
@@ -299,7 +301,7 @@ VIEWS.player = async function(pid){
   $('.wrap').innerHTML=`
     <div class="card">
       <div class="spread"><div>
-        <h2>${esc(p.name)}</h2>
+        <h2><span translate="no">${esc(p.name)}</span></h2>
         <p class="muted sm">${[p.position,p.shirt_no?'#'+p.shirt_no:'',age(p.birth_date)?age(p.birth_date)+' שנים':''].filter(Boolean).join(' · ')}</p>
         ${p.birth_date?`<p class="xs muted">🎂 ${fmtBirth(p.birth_date)}${new Date(p.birth_date).getMonth()<3?' · גיל יחסי גבוה בשנתון':new Date(p.birth_date).getMonth()>8?' · גיל יחסי נמוך בשנתון':''}</p>`:`<p class="xs muted">🎂 אין תאריך לידה — <a href="#" onclick="event.preventDefault();playerForm(S.players.find(x=>x.id==='${p.id}'))">הוספה</a></p>`}
         ${p.phone?`<p class="xs muted">📱 <span dir="ltr">${esc(p.phone.replace(/^\+972/,'0'))}</span></p>`:''}
@@ -321,7 +323,7 @@ VIEWS.player = async function(pid){
         ${p.shirt_size?`<div>👕 מידה ${esc(p.shirt_size)}</div>`:''}
         ${p.emergency_phone?`<div>🆘 ${esc(p.emergency_name||'איש קשר')} · <a href="tel:${esc(p.emergency_phone)}" dir="ltr">${esc(p.emergency_phone)}</a></div>`:''}
         ${p.pickup_note?`<div>🚗 ${esc(p.pickup_note)}</div>`:''}
-        ${p.coach_note?`<div class="alert ok">📝 ${esc(p.coach_note)}</div>`:''}
+        ${p.coach_note?`<div class="alert ok">📝 <span translate="no">${esc(p.coach_note)}</span></div>`:''}
       </div>${p.details_updated_at?`<p class="xs muted" style="margin-top:6px">עודכן ${fmtDate(p.details_updated_at)}</p>`:''}</div>`:''}
 
     <div class="hd"><h2>תכונות</h2><span class="xs muted">סולם 1–20</span></div>
@@ -410,7 +412,7 @@ function discForm(pid){
     const row=build(); row.parent_notified_at=new Date().toISOString();
     await sb.from('coach_discipline').insert(row);
     const p=S.players.find(x=>x.id===pid);
-    const txt=`שלום, כאן המאמן של ${S.team.name}. רציתי לעדכן לגבי ${p.name}: ${row.kind}${row.note?' — '+row.note:''}. ${row.action?'טיפלנו בזה: '+row.action+'. ':''}נשמח לדבר.`;
+    const txt=I18N.t('שלום, כאן המאמן של {0}. רציתי לעדכן לגבי {1}: {2}.',S.team.name,p.name,I18N.tr(row.kind)+(row.note?' — '+row.note:''))+' '+(row.action?I18N.t('טיפלנו בזה: {0}.',row.action)+' ':'')+I18N.t('נשמח לדבר.');
     const ph=(p.parent_phone||'').replace(/\D/g,'').replace(/^0/,'972');
     await waOpen('https://wa.me/'+(ph||'')+'?text='+encodeURIComponent(txt));
     closeSheet(); go('player',pid);
@@ -421,7 +423,7 @@ function parentMsg(pid){
   const list=LOCAL_OBS.filter(o=>o.player_id===pid);
   const sc=scoreFromObs(list);
   const up=Object.entries(sc).filter(([k,v])=>v.trend>=1).map(([k])=>ATTR_LABEL(k));
-  const txt=`שלום! עדכון קצר על ${p.name} מהחודש האחרון ב${S.team.name}: ${up.length?'התקדמות יפה ב'+up.join(', ')+'. ':'עובד יפה באימונים. '}נמשיך לעבוד. תודה!`;
+  const txt=I18N.t('שלום! עדכון קצר על {0} מהחודש האחרון ב{1}:',p.name,S.team.name)+' '+(up.length?I18N.t('התקדמות יפה ב{0}.',up.map(x=>I18N.tr(x)).join(', ')):I18N.t('עובד יפה באימונים.'))+' '+I18N.t('נמשיך לעבוד. תודה!');
   const ph=(p.parent_phone||'').replace(/\D/g,'').replace(/^0/,'972');
   waOpen('https://wa.me/'+(ph||'')+'?text='+encodeURIComponent(txt));
 }
@@ -447,7 +449,7 @@ VIEWS.tests = function(){
   const draw=()=>{ $('#ttiles').innerHTML=S.players.map(p=>{
       const v=TIMERS[p.id];
       return `<button class="tile ${v&&v.done?'on':''}" onclick="tapTest('${p.id}')">
-        <b>${esc(p.name.split(' ')[0])}</b><span class="num sm">${v?(v.done?v.val.toFixed(2):'…'):'—'}</span></button>`;}).join(''); };
+        <b><span translate="no">${esc(p.name.split(' ')[0])}</span></b><span class="num sm">${v?(v.done?v.val.toFixed(2):'…'):'—'}</span></button>`;}).join(''); };
   window.tapTest=(pid)=>{
     const now=performance.now();
     if(groupStart){ if(!TIMERS[pid]||!TIMERS[pid].done) TIMERS[pid]={done:true,val:(now-groupStart)/1000}; else delete TIMERS[pid]; }
@@ -510,7 +512,7 @@ VIEWS.reports = async function(){
   const weak=Object.entries(agg).map(([k,v])=>({k,avg:v.reduce((a,b)=>a+b,0)/v.length,n:v.length}))
     .filter(x=>x.n>=5).sort((a,b)=>a.avg-b.avg).slice(0,3);
   $('.wrap').innerHTML=`
-    <div class="card"><h2>${esc(S.team.name)}</h2>
+    <div class="card"><h2><span translate="no">${esc(S.team.name)}</span></h2>
       <p class="muted sm">${(sess||[]).length} אימונים הושלמו · ${all.length} תצפיות · ${S.players.length} שחקנים</p></div>
     ${weak.length?`<div class="hd"><h2>מה לאמן בשבוע הבא</h2></div><div class="card">
       ${weak.map(w=>`<div class="attr"><span>${esc(ATTR_LABEL(w.k))}</span>
@@ -519,14 +521,14 @@ VIEWS.reports = async function(){
       <p class="xs muted" style="margin-top:8px">הממוצע הנמוך ביותר בקבוצה — שווה לבנות סביבו את הדגש הבא.</p></div>`:''}
     ${up.length?`<div class="hd"><h2>הכי התקדמו</h2></div><div class="stack">
       ${up.map(r=>`<div class="prow" onclick="go('player','${r.p.id}')"><div class="av">${esc(initials(r.p.name))}</div>
-        <div class="pname"><b>${esc(r.p.name)}</b></div><span class="pill ok" dir="ltr">+${r.trend.toFixed(1)}</span></div>`).join('')}</div>`:''}
+        <div class="pname"><b><span translate="no">${esc(r.p.name)}</span></b></div><span class="pill ok" dir="ltr">+${r.trend.toFixed(1)}</span></div>`).join('')}</div>`:''}
     ${down.length?`<div class="hd"><h2>בירידה</h2></div><div class="stack">
       ${down.map(r=>`<div class="prow" onclick="go('player','${r.p.id}')"><div class="av">${esc(initials(r.p.name))}</div>
-        <div class="pname"><b>${esc(r.p.name)}</b></div><span class="pill bad" dir="ltr">${r.trend.toFixed(1)}</span></div>`).join('')}</div>`:''}
+        <div class="pname"><b><span translate="no">${esc(r.p.name)}</span></b></div><span class="pill bad" dir="ltr">${r.trend.toFixed(1)}</span></div>`).join('')}</div>`:''}
     <div class="hd"><h2>נוכחות</h2></div>
     <div class="scroll-x"><table class="tbl"><tr><th>שחקן</th><th>נוכחות</th><th>ציון</th></tr>
       ${rows.sort((a,b)=>(a.att??1)-(b.att??1)).map(r=>`<tr onclick="go('player','${r.p.id}')">
-        <td>${esc(r.p.name)}</td><td class="num">${r.att!=null?Math.round(r.att*100)+'%':'—'} <span class="xs muted">(${r.n})</span></td>
+        <td><span translate="no">${esc(r.p.name)}</span></td><td class="num">${r.att!=null?Math.round(r.att*100)+'%':'—'} <span class="xs muted">(${r.n})</span></td>
         <td class="num">${r.ov!=null?r.ov.toFixed(1):'—'}</td></tr>`).join('')}</table></div>`;
 };
 
@@ -547,8 +549,9 @@ VIEWS.more = function(){
     <button class="btn big" onclick="go('teamedit')">⚙️ הגדרות קבוצה</button>
     <button class="btn big" onclick="go('settings')">🏫 מועדון וקבוצות</button>
     <button class="btn big hide" id="toFam" onclick="S.role='parent';bootstrapFamily()">👨‍👧 מעבר לאפליקציית ההורה</button>
+    <label class="spread card" style="padding:10px 14px"><span>🌐 שפה</span>${I18N.picker()}</label>
     <div class="sep"></div>
-    <p class="xs muted">${esc(S.club?.name||'')} · ${esc(whoAmI())} · ${S.role==='coach'?'מאמן':S.role}</p>
+    <p class="xs muted"><span translate="no">${esc(S.club?.name||'')}</span> · ${esc(whoAmI())} · ${S.role==='coach'?'מאמן':S.role}</p>
     <p class="xs muted">ממתינים לסנכרון: ${OFF.pending()}</p>
     <p class="xs muted" dir="ltr" style="text-align:end">SINAI Club v${APP_VERSION}</p>
     <button class="btn ghost" onclick="flushQueue()">סנכרון עכשיו</button>
@@ -570,11 +573,11 @@ VIEWS.discipline = async function(){
   $('.wrap').innerHTML=`
     ${Object.entries(flag).filter(([,n])=>n>=3).map(([pid,n])=>{const p=S.players.find(x=>x.id===pid)||{name:'—'};
       return `<div class="prow" style="border-color:var(--bad)"><div class="av">${esc(initials(p.name))}</div>
-        <div class="pname"><b>${esc(p.name)}</b><span class="xs muted">${n} אירועים ב-30 יום</span></div><span class="pill bad">דגל</span></div>`;}).join('')}
+        <div class="pname"><b><span translate="no">${esc(p.name)}</span></b><span class="xs muted">${n} אירועים ב-30 יום</span></div><span class="pill bad">דגל</span></div>`;}).join('')}
     <div class="hd"><h2>רישומים אחרונים</h2></div>
     <div class="stack">${(data||[]).map(d=>{const p=S.players.find(x=>x.id===d.player_id)||{name:'—'};
       return `<div class="prow" onclick="go('player','${d.player_id}')"><div class="av">${esc(initials(p.name))}</div>
-        <div class="pname"><b class="sm">${esc(p.name)} — ${esc(d.kind)}</b>
+        <div class="pname"><b class="sm"><span translate="no">${esc(p.name)}</span> — ${esc(d.kind)}</b>
         <span class="xs muted">${fmtDate(d.at)}${d.action?' · '+esc(d.action):''}${d.parent_notified_at?' · הורה עודכן':''}</span></div>
         <span class="pill ${d.positive?'ok':d.severity>=3?'bad':'warn'}">${d.positive?'חיובי':d.severity}</span></div>`;}).join('')||'<p class="muted sm">אין רישומים.</p>'}</div>`;
 };
@@ -618,7 +621,7 @@ VIEWS.teamedit = function(){
 
 VIEWS.settings = function(){
   screen('מועדון וקבוצות', `
-    <div class="card"><h2>${esc(S.club?.name||'')}</h2><p class="muted sm">${S.teams.length} קבוצות</p></div>
+    <div class="card"><h2><span translate="no">${esc(S.club?.name||'')}</span></h2><p class="muted sm">${S.teams.length} קבוצות</p></div>
     <div class="card stack" style="margin-top:10px">
       <div class="togrow"><div class="t"><b>מצב שומר שבת</b>
         <span>האפליקציה לא תשלח הודעות בשבת. ${isShabbat()?'<b>שבת עכשיו.</b>':''}</span></div>
@@ -630,7 +633,7 @@ VIEWS.settings = function(){
     </div>
     <div class="hd"><h2>קבוצות</h2></div>
     <div class="stack">${S.teams.map(t=>`<div class="prow" onclick="pickTeam('${t.id}')">
-      <div class="av">${esc(t.name[0]||'')}</div><div class="pname"><b>${esc(t.name)}</b>
+      <div class="av">${esc(t.name[0]||'')}</div><div class="pname"><b><span translate="no">${esc(t.name)}</span></b>
       <span class="xs muted">${AGES[t.age_profile]} · ${t.session_minutes} דק׳${t.league_mode?' · ליגה':''}</span></div>
       ${t.id===S.team?.id?'<span class="pill ok">נוכחית</span>':''}</div>`).join('')}</div>
     <div class="card stack" style="margin-top:14px">

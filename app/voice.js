@@ -132,7 +132,7 @@ async function voiceDone(){
   if(ms<700||!VOICE.chunks.length) return toast('קצר מדי, צריך להחזיק ולדבר');
   const blob=new Blob(VOICE.chunks,{type:VOICE.mime});
   const roster=S.players.map(p=>({id:p.id,name:p.name,nick:p.nickname||null,no:p.shirt_no||null,pos:p.position||null}));
-  const item={id:uid(),at:VOICE.at,pid:VOICE.pid,ctx:VOICE.ctx,mime:VOICE.mime,blob,roster};
+  const item={id:uid(),at:VOICE.at,pid:VOICE.pid,ctx:VOICE.ctx,mime:VOICE.mime,blob,roster,lang:I18N.lang};   // the language the coach spoke
   try{ await VQ.put(item); }catch(e){ VOICE.mem=item; }
   await vqCount();
   if(navigator.onLine) voiceFlush(); else toast('נשמר. יישלח כשתחזור קליטה');
@@ -162,7 +162,7 @@ async function voiceSend(q){
     const attrs=teamAttrs(true).map(a=>({key:a.key,label:a.label}));
     const r=await fetch(VOICE_FN,{method:'POST',headers:{'Content-Type':'application/json',
       Authorization:'Bearer '+(session?session.access_token:''),apikey:SB_KEY},
-      body:JSON.stringify({audio,mime:q.mime,roster:q.roster,attrs,selected:q.pid,context:q.ctx&&q.ctx.desc||''})});
+      body:JSON.stringify({audio,mime:q.mime,roster:q.roster,attrs,selected:q.pid,context:q.ctx&&q.ctx.desc||'',lang:q.lang||'he'})});
     const j=await r.json().catch(()=>({}));
     if(!r.ok) return {error:j.error||('שגיאה '+r.status), keep:r.status>=500||r.status===401};
     return j;
@@ -222,7 +222,7 @@ let VSTRIP_T;
 function voiceStripShow(text,done){
   let el=$('#vstrip'); if(!el){ el=document.createElement('div'); el.id='vstrip'; el.className='vstrip'; document.body.appendChild(el); }
   const undo=VOICE.last&&(VOICE.last.rows.length||VOICE.last.disc.length);
-  el.innerHTML=`<div class="spread"><span class="xs muted">"${esc(text)}"</span>
+  el.innerHTML=`<div class="spread"><span class="xs muted">"<span translate="no">${esc(text)}</span>"</span>
       ${undo?'<button class="btn sm ghost" onclick="voiceUndo()">ביטול</button>':''}</div>
     <div class="vchips">${done.map(d=>`<span class="vchip ${d.q?'q':d.dn?'dn':''}">${esc(d.p)} · ${esc(d.t)}${d.q?' · לטיפול':''}</span>`).join('')}</div>`;
   el.style.display='block';
@@ -252,14 +252,14 @@ function voiceInbox(){
     <div class="stack">${box.map(x=>{
       const it=x.it, cands=x.cands.length?x.cands:[];
       const what=it.kind==='rating'?it.effects.map(e=>ATTR_LABEL(e.attr)+' '+e.score).join(' · '):it.kind==='discipline'?'משמעת: '+(it.discipline_kind||it.label):'הערה';
-      return `<div class="vitem"><div class="spread"><b class="sm">${esc(it.label)}</b><span class="xs muted">${fmtDate(x.at)} ${new Date(x.at).toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'})}</span></div>
-        <p class="xs muted">${esc(what)}</p><p class="vtext">"${esc(x.text)}"</p>
+      return `<div class="vitem"><div class="spread"><b class="sm">${esc(it.label)}</b><span class="xs muted">${fmtDate(x.at)} ${I18N.time(x.at)}</span></div>
+        <p class="xs muted">${esc(what)}</p><p class="vtext">"<span translate="no">${esc(x.text)}</span>"</p>
         ${it.kind==='note'&&it.player_ids&&it.player_ids.length
           ? `<div class="row" style="gap:6px;margin-top:8px"><button class="btn sm primary" onclick="voiceKeepNote('${x.id}')">להוסיף להערות המאמן של ${esc(it.player_ids.map(pName).join(', '))}</button>
              <button class="btn sm ghost" onclick="voiceDrop('${x.id}')">מחיקה</button></div>`
           : `<p class="xs muted" style="margin-top:8px">${cands.length?'על מי?':'על מי? (לא זוהה שם)'}</p>
              <div class="chips" style="margin-top:4px">${(cands.length?cands.map(id=>pool.find(p=>p.id===id)).filter(Boolean):pool).map(p=>
-               `<button class="chip" onclick="voiceResolve('${x.id}','${p.id}')">${esc(p.name)}${p.shirt_no?' #'+p.shirt_no:''}</button>`).join('')}
+               `<button class="chip" onclick="voiceResolve('${x.id}','${p.id}')"><span translate="no">${esc(p.name)}</span>${p.shirt_no?' #'+p.shirt_no:''}</button>`).join('')}
                <button class="chip" onclick="voiceDrop('${x.id}')">🗑 מחיקה</button></div>`}
       </div>`;}).join('')}</div>`);
 }

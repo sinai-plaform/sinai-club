@@ -27,7 +27,7 @@ VIEWS.home = async function(){
 
   $('#hm').innerHTML=`
     <div class="card">
-      <div class="spread"><div><h2>${esc(t.name)}</h2>
+      <div class="spread"><div><h2><span translate="no">${esc(t.name)}</span></h2>
         <p class="muted sm">${AGES[t.age_profile]||''} · ${t.session_minutes} דק׳ · ${S.players.length} שחקנים${t.league_mode?' · ליגה':''}</p></div>
         <button class="btn sm" onclick="go('teamedit')">הגדרות</button></div>
       <div class="sep"></div>
@@ -46,9 +46,9 @@ VIEWS.home = async function(){
     </div>
 
     ${(risk.length||back.length||injured.length)?`<div class="hd"><h2>דורש תשומת לב</h2></div><div class="stack">
-      ${risk.map(p=>`<div class="prow"><div class="av">${esc(initials(p.name))}</div><div class="pname"><b>${esc(p.name)}</b><span class="xs muted">נעדר פעמיים ברצף</span></div><span class="pill bad">נטישה?</span></div>`).join('')}
-      ${back.map(p=>`<div class="prow"><div class="av">${esc(initials(p.name))}</div><div class="pname"><b>${esc(p.name)}</b><span class="xs muted">תאריך חזרה עבר</span></div><span class="pill warn">חוזר</span></div>`).join('')}
-      ${injured.filter(p=>!back.includes(p)).map(p=>`<div class="prow"><div class="av">${esc(initials(p.name))}</div><div class="pname"><b>${esc(p.name)}</b><span class="xs muted">${p.status==='injured'?'פצוע':'חולה'}${p.status_until?' עד '+fmtDate(p.status_until):''}</span></div><span class="pill warn">לא זמין</span></div>`).join('')}
+      ${risk.map(p=>`<div class="prow"><div class="av">${esc(initials(p.name))}</div><div class="pname"><b><span translate="no">${esc(p.name)}</span></b><span class="xs muted">נעדר פעמיים ברצף</span></div><span class="pill bad">נטישה?</span></div>`).join('')}
+      ${back.map(p=>`<div class="prow"><div class="av">${esc(initials(p.name))}</div><div class="pname"><b><span translate="no">${esc(p.name)}</span></b><span class="xs muted">תאריך חזרה עבר</span></div><span class="pill warn">חוזר</span></div>`).join('')}
+      ${injured.filter(p=>!back.includes(p)).map(p=>`<div class="prow"><div class="av">${esc(initials(p.name))}</div><div class="pname"><b><span translate="no">${esc(p.name)}</span></b><span class="xs muted">${p.status==='injured'?'פצוע':'חולה'}${p.status_until?' עד '+fmtDate(p.status_until):''}</span></div><span class="pill warn">לא זמין</span></div>`).join('')}
     </div>`:''}
 
     <div class="hd"><h2>אימונים אחרונים</h2><button class="btn sm ghost" onclick="go('reports')">דוחות</button></div>
@@ -59,7 +59,7 @@ VIEWS.home = async function(){
 
 function teamSwitcher(){
   sheet(`<h2>קבוצות</h2><div class="stack" style="margin-top:12px">
-    ${S.teams.map(t=>`<button class="btn ${t.id===S.team?.id?'primary':''}" onclick="pickTeam('${t.id}')">${esc(t.name)}</button>`).join('')}
+    ${S.teams.map(t=>`<button class="btn ${t.id===S.team?.id?'primary':''}" onclick="pickTeam('${t.id}')"><span translate="no">${esc(t.name)}</span></button>`).join('')}
     <button class="btn ghost" onclick="closeSheet();go('settings')">+ קבוצה חדשה</button></div>`);
 }
 async function pickTeam(id){ S.team=S.teams.find(t=>t.id===id); await loadTeam(); closeSheet(); go(S.view==='home'?'home':'home'); }
@@ -80,7 +80,7 @@ VIEWS.squad = async function(){
     const a=age(p.birth_date);
     return `<div class="prow" onclick="go('player','${p.id}')">
       <div class="av">${p.shirt_no?p.shirt_no:esc(initials(p.name))}</div>
-      <div class="pname"><b>${esc(p.name)}</b><span class="xs muted">${[p.position||'',p.birth_date?fmtBirth(p.birth_date)+' ('+a+')':''].filter(Boolean).join(' · ')||'—'}</span></div>
+      <div class="pname"><b><span translate="no">${esc(p.name)}</span></b><span class="xs muted">${[p.position||'',p.birth_date?fmtBirth(p.birth_date)+' ('+a+')':''].filter(Boolean).join(' · ')||'—'}</span></div>
       ${st}<span class="pill ${vals.length?'info':''}">${ov}</span></div>`;
   }).join('');
   $('#sq').innerHTML = S.players.length
@@ -156,8 +156,8 @@ function importSheet(){
 let PLAN = LS('plan')||{focus:'',items:[]};
 if(!PLAN.items) PLAN.items=[];
 const planMin=()=>PLAN.items.reduce((s,i)=>s+(+i.min||0),0);
-const WD=['א׳','ב׳','ג׳','ד׳','ה׳','ו׳','ש׳'];
-const dayLabel=d=>{const x=new Date(d+'T12:00:00');return `יום ${WD[x.getDay()]} · ${x.getDate()}.${x.getMonth()+1}`;};
+const dayLabel=d=>{const x=new Date(d+'T12:00:00');
+  return I18N.lang==='he' ? `יום ${I18N.weekdays()[x.getDay()]} · ${x.getDate()}.${x.getMonth()+1}` : `${I18N.weekdays()[x.getDay()]} · ${x.getDate()}.${x.getMonth()+1}`;};
 let PLAN_T=null;
 function planChanged(){
   LS('plan',PLAN);
@@ -197,7 +197,7 @@ VIEWS.plan = async function(arg){
     <div class="card stack">
       ${PLAN.theme?`<div class="row wrap" style="gap:6px"><span class="pill info">${esc(PLAN.theme)}</span>
         ${PLAN.week?`<span class="pill">שבוע ${PLAN.week}</span>`:''}${PLAN.phase?`<span class="pill">${esc(PLAN.phase)}</span>`:''}</div>`:''}
-      ${PLAN.snote?`<p class="xs muted">${esc(PLAN.snote)}</p>`:''}
+      ${PLAN.snote?`<p class="xs muted"><span translate="no">${esc(PLAN.snote)}</span></p>`:''}
       <div class="grid2">
         <label class="f">תאריך<input id="pdt" type="date" value="${PLAN.date||today()}" ${done?'disabled':''}></label>
         <label class="f">שעה<input id="ptm" type="time" value="${PLAN.time||''}" ${done?'disabled':''}></label>
@@ -331,7 +331,7 @@ function drawAtt(){
     const a=S.attendance[p.id]||{}; const v=a.present;
     const un=p.status!=='active';
     return `<div class="prow ${un?'':''}"><div class="av">${p.shirt_no||esc(initials(p.name))}</div>
-      <div class="pname"><b>${esc(p.name)}</b>${un?`<span class="xs muted">${({injured:'פצוע',sick:'חולה',away:'חופש'})[p.status]||''}</span>`:''}</div>
+      <div class="pname"><b><span translate="no">${esc(p.name)}</span></b>${un?`<span class="xs muted">${({injured:'פצוע',sick:'חולה',away:'חופש'})[p.status]||''}</span>`:''}</div>
       <div class="row" style="gap:4px">
         <button class="btn sm ${v==='yes'?'primary':''}" onclick="setAtt('${p.id}','yes')">✓</button>
         <button class="btn sm ${v==='notified'?'primary':''}" onclick="setAtt('${p.id}','notified')">הודיע</button>
@@ -371,7 +371,7 @@ VIEWS.live = function(){
         <button class="btn sm primary" onclick="nextDrill()">${LIVE.idx<list.length-1?'הבא ▶':'סיום אימון'}</button>
       </div>
     </div>
-    ${it.notes?`<div class="alert ok" style="margin-top:10px">📝 ${esc(it.notes)}</div>`:''}
+    ${it.notes?`<div class="alert ok" style="margin-top:10px">📝 <span translate="no">${esc(it.notes)}</span></div>`:''}
     ${d.points&&d.points.length?`<p class="sm muted" style="margin:10px 2px">💡 ${esc(d.points[0])}</p>`:''}
     <div class="hd"><h2>דירוג מהיר</h2><span class="xs muted">לחיצה על שחקן</span></div>
     <div class="tiles" id="tiles"></div>
@@ -389,7 +389,7 @@ function drawTiles(){
   el.innerHTML=pl.map(p=>{
     const n=localCounts(p.id,S.session?.id);
     return `<button class="tile" onclick="ratePlayer('${p.id}')">${n?`<span class="cnt">${n}</span>`:''}
-      <b>${esc(p.name.split(' ')[0])}</b><span class="xs muted">${p.shirt_no?'#'+p.shirt_no:''}</span></button>`;
+      <b><span translate="no">${esc(p.name.split(' ')[0])}</span></b><span class="xs muted">${p.shirt_no?'#'+p.shirt_no:''}</span></button>`;
   }).join('');
 }
 function toggleTimer(){
@@ -420,13 +420,13 @@ function showDrill(id, planIdx, autoplay){ const d=drillById(id); if(!d)return;
   const pnote = planIdx!=null && PLAN.items[planIdx] ? PLAN.items[planIdx].notes : null;
   sheet(`<h2>${esc(d.name)}</h2><p class="xs muted" style="margin:4px 0 10px">${esc(d.src||'')} · ${d.min} דק׳ · ${esc(d.players||'')}${d.area?' · '+esc(d.area):''}</p>
     ${demoBox(d.diag, 'sd', d.name)}
-    ${pnote?`<div class="alert ok" style="margin-top:10px">📝 ${esc(pnote)}</div>`:''}
+    ${pnote?`<div class="alert ok" style="margin-top:10px">📝 <span translate="no">${esc(pnote)}</span></div>`:''}
     ${d.equip?`<p class="sm" style="margin-top:10px"><b>ציוד:</b> ${esc(d.equip)}</p>`:''}
     <p class="sm" style="margin-top:6px"><b>הכנה:</b> ${esc(d.setup||'')}</p>
     <p class="sm" style="margin-top:6px">${esc(d.desc||'')}</p>
     ${(d.points||[]).length?`<h3 style="margin-top:12px">דגשים</h3><ul class="sm">${d.points.map(p=>`<li>${esc(p)}</li>`).join('')}</ul>`:''}
     ${(d.prog||[]).length?`<h3 style="margin-top:10px">התקדמויות</h3><ul class="sm">${d.prog.map(p=>`<li>${esc(p)}</li>`).join('')}</ul>`:''}
-    ${d.notes?`<h3 style="margin-top:10px">הערות המאמן</h3><p class="sm">${esc(d.notes)}</p>`:''}
+    ${d.notes?`<h3 style="margin-top:10px">הערות המאמן</h3><p class="sm"><span translate="no">${esc(d.notes)}</span></p>`:''}
     <div class="row" style="gap:6px;margin-top:12px">
       <button class="btn sm" style="flex:1" onclick="closeSheet();openBoard('${d.id}')">▦ פתיחה בלוח</button>
       ${S.view!=='live'?`<button class="btn sm primary" style="flex:1" onclick="addToPlan('${d.id}');closeSheet()">+ לאימון</button>`:''}</div>`);
@@ -438,7 +438,7 @@ function ratePlayer(pid, opts){
   const p=S.players.find(x=>x.id===pid); if(!p)return;
   const isGk=p.position==='שוער';
   const attrs=teamAttrs(isGk).filter(a=>isGk? true : a.grp!=='gk');
-  sheet(`<div class="spread"><h2>${esc(p.name)}</h2><span class="xs muted">${opts&&opts.match?'משחק':'תרגיל'}</span></div>
+  sheet(`<div class="spread"><h2><span translate="no">${esc(p.name)}</span></h2><span class="xs muted">${opts&&opts.match?'משחק':'תרגיל'}</span></div>
     ${notesPanel(pid)}
     <div class="sep"></div>
     <div id="attrPick"><p class="xs muted" style="margin-bottom:6px">או ציון לתכונה</p>
@@ -488,7 +488,7 @@ function quickRound(){
   const step=()=>{
     if(i>=pl.length){closeSheet();toast('סבב הושלם');drawTiles();return;}
     const p=pl[i]; got={};
-    sheet(`<p class="xs muted">סבב מהיר ${i+1}/${pl.length} · מה שהתרגיל הזה מאמן</p><h2>${esc(p.name)}</h2>
+    sheet(`<p class="xs muted">סבב מהיר ${i+1}/${pl.length} · מה שהתרגיל הזה מאמן</p><h2><span translate="no">${esc(p.name)}</span></h2>
       ${keys.map(k=>`<p class="sm muted" style="margin:10px 0 6px">${esc(ATTR_LABEL(k))}</p>
       <div class="scorerow" data-k="${k}">${[1,2,3,4,5].map(v=>`<button data-s="${v}" onclick="qrScore('${p.id}','${k}',${v},this)">${v}</button>`).join('')}</div>`).join('')}
       <button class="btn ghost" style="width:100%;margin-top:10px" onclick="qrSkip()">${keys.length>1?'הבא':'דלג'}</button>`);
@@ -545,15 +545,15 @@ VIEWS.sessionReport = async function(){
     ${Object.keys(byP).length?`<div class="hd"><h2>מי קיבל דירוג</h2></div><div class="stack">
       ${Object.entries(byP).map(([pid,list])=>{const p=S.players.find(x=>x.id===pid)||{name:'—'};
         return `<div class="prow" onclick="go('player','${pid}')"><div class="av">${esc(initials(p.name))}</div>
-          <div class="pname"><b>${esc(p.name)}</b><span class="xs muted">${list.map(o=>ATTR_LABEL(o.attribute)+' '+o.score).join(' · ')}</span></div></div>`;}).join('')}
+          <div class="pname"><b><span translate="no">${esc(p.name)}</span></b><span class="xs muted">${list.map(o=>ATTR_LABEL(o.attribute)+' '+o.score).join(' · ')}</span></div></div>`;}).join('')}
     </div>`:''}
     <button class="btn primary big" style="margin-top:16px" onclick="shareSession()">שיתוף סיכום בוואטסאפ</button>
     <button class="btn ghost" style="margin-top:8px;width:100%" onclick="go('home')">חזרה</button>`);
 };
 function shareSession(){
-  const lines=[`אימון ${S.team.name} — ${fmtDate(S.session.date)}`, S.session.focus?`דגש: ${S.session.focus}`:'',
-    ...S.sessionDrills.map((it,i)=>{const d=drillById(it.id)||{name:''};return `${i+1}. ${d.name} (${it.min}׳)`;}),
-    `נוכחות: ${presentPlayers().length}/${S.players.length}`];
+  const lines=[I18N.t('אימון {0} — {1}',S.team.name,fmtDate(S.session.date)), S.session.focus?I18N.t('דגש: {0}',I18N.tr(S.session.focus)):'',
+    ...S.sessionDrills.map((it,i)=>{const d=drillById(it.id)||{name:''};return `${i+1}. ${d.mine?d.name:I18N.tr(d.name)} (${I18N.t('{0} דק׳',it.min)})`;}),
+    I18N.t('נוכחות: {0}/{1}',presentPlayers().length,S.players.length)];
   waOpen('https://wa.me/?text='+encodeURIComponent(lines.filter(Boolean).join('\n')));
 }
 

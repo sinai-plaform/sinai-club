@@ -226,7 +226,7 @@ VIEWS.parents = async function(){
     return `<div class="prow" id="i_${g.guardian_id}">
       <div class="av">${esc(initials(g.name||'?'))}</div>
       <div class="pname" style="flex:1" onclick="go('parentCard','${g.guardian_id}')">
-        <b>${esc(g.name||showPhone(g.phone))}</b>
+        <b><span translate="no">${esc(g.name||showPhone(g.phone))}</span></b>
         <span class="xs muted">${kids.length?esc(kids.join(' · ')):'ללא שיוך'} · ${when}</span></div>
       ${g.registered
         ? `<span class="pill ok">מחובר</span>`
@@ -266,7 +266,7 @@ VIEWS.parentCard = async function(gid){
   const names={}; S.players.forEach(p=>names[p.id]=p);
   const kids=(g.coach_guardian_players||[]).map(x=>names[x.player_id]).filter(Boolean);
   $('.wrap').innerHTML=`
-    <div class="card"><h2>${esc(g.name||showPhone(g.phone))}</h2>
+    <div class="card"><h2><span translate="no">${esc(g.name||showPhone(g.phone))}</span></h2>
       <p class="muted sm" dir="ltr">${showPhone(g.phone)}</p>
       <div class="chips" style="margin-top:10px">
         <span class="chip ${g.user_id?'':'muted'}">${g.user_id?'מחובר':'לא מחובר'}</span>
@@ -275,7 +275,7 @@ VIEWS.parentCard = async function(gid){
     <div class="hd"><h2>ילדים</h2></div>
     <div class="stack">${kids.map(k=>`<div class="prow" onclick="go('player','${k.id}')">
       <div class="av">${esc(initials(k.name))}</div>
-      <div class="pname" style="flex:1"><b>${esc(k.name)}</b>
+      <div class="pname" style="flex:1"><b><span translate="no">${esc(k.name)}</span></b>
         <span class="xs muted">${k.login_enabled?'יש חשבון שחקן':'ללא חשבון'}</span></div>
       ${k.login_enabled?'<span class="pill ok">חשבון</span>':''}</div>`).join('')||'<p class="muted sm">אין שיוך.</p>'}</div>
     <div class="hd"><h2>היסטוריית הזמנות</h2></div>
@@ -295,9 +295,9 @@ async function makeInvite(guardianId){
   return {link: location.origin+location.pathname+'?t='+tok, id:data.id};
 }
 function inviteText(link, kids){
-  return `היי! זו האפליקציה של ${S.club.name}.\n`+
-    (kids?`כאן תוכל לראות את ${kids} — נוכחות, יעדים ועדכונים מהמאמן.\n`:'')+
-    `הכניסה בלחיצה אחת, בלי סיסמה:\n${link}`;
+  return I18N.t('היי! זו האפליקציה של {0}.',S.club.name)+'\n'+
+    (kids?I18N.t('כאן תוכל לראות את {0} — נוכחות, יעדים ועדכונים מהמאמן.',kids)+'\n':'')+
+    I18N.t('הכניסה בלחיצה אחת, בלי סיסמה:')+'\n'+link;
 }
 
 /* the one place that knows HOW a link goes out.
@@ -306,7 +306,7 @@ async function deliverInvite(gid, {silent}={}){
   const {data:g}=await sb.from('coach_guardians')
     .select('phone, coach_guardian_players(player_id)').eq('id',gid).single();
   const names={}; S.players.forEach(p=>names[p.id]=p.name.split(' ')[0]);
-  const kids=(g.coach_guardian_players||[]).map(x=>names[x.player_id]).filter(Boolean).join(' ו');
+  const kids=I18N.list((g.coach_guardian_players||[]).map(x=>names[x.player_id]));
   const {link,id}=await makeInvite(gid);
   if(!silent){
     const to=g.phone.replace(/[^0-9]/g,'');
@@ -336,7 +336,7 @@ async function inviteAll(mode){
     <div class="stack" style="margin-top:12px">
       ${gs.map(g=>`<div class="prow" id="i_${g.guardian_id}">
         <div class="av">${esc(initials(g.name||'?'))}</div>
-        <div class="pname" style="flex:1"><b>${esc(g.name||showPhone(g.phone))}</b>
+        <div class="pname" style="flex:1"><b><span translate="no">${esc(g.name||showPhone(g.phone))}</span></b>
           <span class="xs muted" dir="ltr">${showPhone(g.phone)}</span></div>
         <button class="btn ghost sm" style="width:auto;padding:6px 12px" onclick="sendTo('${g.guardian_id}')">שליחה</button>
       </div>`).join('')}
@@ -351,7 +351,7 @@ async function copyText(t, btn){
     a.select(); document.execCommand('copy'); a.remove(); }
   if(btn){ const o=btn.textContent; btn.textContent='הועתק ✓'; setTimeout(()=>btn.textContent=o,1400); }
 }
-const dayName = d=>['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'][new Date(d).getDay()];
+const dayName = d=>I18N.lang==='he' ? ['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'][new Date(d).getDay()] : I18N.weekdays('long')[new Date(d).getDay()];
 
 VIEWS.broadcast = async function(){
   if(!S.team) return go('home');
@@ -363,23 +363,29 @@ VIEWS.broadcast = async function(){
   ]);
   const next = (nx||[])[0], last = (lt||[])[0];
   const pending = (st||[]).filter(g=>!g.registered).length;
-  const when = s => s ? `יום ${dayName(s.date)} ${fmtDate(s.date)}${s.start_time?' בשעה '+s.start_time.slice(0,5):''}` : '';
+  const when = s => !s ? '' : I18N.lang==='he' ? `יום ${dayName(s.date)} ${fmtDate(s.date)}${s.start_time?' בשעה '+s.start_time.slice(0,5):''}`
+    : `${dayName(s.date)} ${fmtDate(s.date)}${s.start_time?' '+I18N.t('בשעה {0}',s.start_time.slice(0,5)):''}`;
   const sign = `\n\n— ${S.team.name}, ${S.club.name}`;
+  const L = (...a)=>I18N.t(...a);      // the messages go out in the coach's language
 
   const T = [];
   T.push({k:'about', t:'היכרות להורים: מה זה SINAI Club',
-    b:`הורים יקרים, השנה נעבוד עם SINAI Club: אפליקציה שבה תראו את האימון הבא, את הנוכחות, את היעדים שאני מציב לכל ילד ואת ההתקדמות שלו.\nכל הורה רואה רק את הילד שלו, וצילום של ילדים רק באישורכם.\nהסבר קצר, דקה קריאה: ${location.origin}/parents/\nבימים הקרובים יגיע אליכם קישור אישי להצטרפות.${sign}`});
+    b:[L('הורים יקרים, השנה נעבוד עם SINAI Club: אפליקציה שבה תראו את האימון הבא, את הנוכחות, את היעדים שאני מציב לכל ילד ואת ההתקדמות שלו.'),
+       L('כל הורה רואה רק את הילד שלו, וצילום של ילדים רק באישורכם.'),
+       L('הסבר קצר, דקה קריאה: {0}',location.origin+'/parents/'),
+       L('בימים הקרובים יגיע אליכם קישור אישי להצטרפות.')].join('\n')+sign});
   if(next) T.push({k:'reminder', t:'תזכורת לאימון הבא',
-    b:`תזכורת: אימון ${when(next)}.${next.focus?`\nהדגש: ${next.focus}.`:''}\nלהביא בקבוק מים ונעלי כדורגל. נתראה!${sign}`});
+    b:[L('תזכורת: אימון {0}.',when(next)), next.focus?L('הדגש: {0}.',I18N.tr(next.focus)):'',
+       L('להביא בקבוק מים ונעלי כדורגל. נתראה!')].filter(Boolean).join('\n')+sign});
   if(next) T.push({k:'cancel', t:'ביטול אימון',
-    b:`שימו לב — האימון ב${when(next)} מבוטל.\nנעדכן בהקדם לגבי השלמה. מתנצל על אי הנוחות.${sign}`});
+    b:L('שימו לב — האימון ב{0} מבוטל.',when(next))+'\n'+L('נעדכן בהקדם לגבי השלמה. מתנצל על אי הנוחות.')+sign});
   if(next) T.push({k:'change', t:'שינוי שעה או מקום',
-    b:`עדכון לאימון ב${when(next)}: יש שינוי ב___ (שעה / מקום).\nאנא שימו לב ועדכנו את הילדים.${sign}`});
+    b:L('עדכון לאימון ב{0}: יש שינוי ב___ (שעה / מקום).',when(next))+'\n'+L('אנא שימו לב ועדכנו את הילדים.')+sign});
   if(last) T.push({k:'summary', t:'סיכום האימון האחרון',
-    b:`סיכום האימון מ${fmtDate(last.date)}${last.focus?` — ${last.focus}`:''}.\nהילדים עבדו יפה. כל הכבוד!${sign}`});
+    b:L('סיכום האימון מ{0}.',fmtDate(last.date)+(last.focus?' — '+I18N.tr(last.focus):''))+'\n'+L('הילדים עבדו יפה. כל הכבוד!')+sign});
   if(pending) T.push({k:'invite', t:`${pending} הורים טרם נכנסו לאפליקציה`,
-    b:`הורים יקרים — מי שעדיין לא נכנס לאפליקציה של ${S.club.name}, הקישור האישי נשלח אליכם בהודעה פרטית.\nהכניסה בלחיצה אחת, בלי סיסמה. שם תוכלו לראות נוכחות, יעדים ועדכונים.${sign}`});
-  T.push({k:'general', t:'הודעה חופשית', b:`הורים יקרים,\n\n${sign}`});
+    b:L('הורים יקרים — מי שעדיין לא נכנס לאפליקציה של {0}, הקישור האישי נשלח אליכם בהודעה פרטית.',S.club.name)+'\n'+L('הכניסה בלחיצה אחת, בלי סיסמה. שם תוכלו לראות נוכחות, יעדים ועדכונים.')+sign});
+  T.push({k:'general', t:'הודעה חופשית', b:L('הורים יקרים,')+`\n\n${sign}`});
 
   $('.wrap').innerHTML = `
     <div class="card"><p class="sm">בחרו הודעה — היא נכתבת מהנתונים באפליקציה. לחיצה על "וואטסאפ" פותחת את

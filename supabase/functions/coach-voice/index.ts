@@ -127,14 +127,19 @@ function b64ToBytes(b64: string) {
   return out;
 }
 
-async function transcribe(bytes: Uint8Array, mime: string, players: Player[]) {
+const LANG_NAME: Record<string, string> = { he: 'Hebrew', en: 'English', ru: 'Russian', ar: 'Arabic', es: 'Spanish' };
+const STT_PROMPT: Record<string, string> = {
+  he: 'מאמן כדורגל באימון ילדים. שמות: ', en: 'Youth football coach at training. Names: ', ru: 'Детский футбольный тренер на тренировке. Имена: ',
+  ar: 'مدرب كرة قدم في تدريب أطفال. الأسماء: ', es: 'Entrenador de fútbol infantil en el entrenamiento. Nombres: ' };
+
+async function transcribe(bytes: Uint8Array, mime: string, players: Player[], lang = 'he') {
   const ext = mime.includes('mp4') || mime.includes('aac') ? 'm4a' : mime.includes('ogg') ? 'ogg' : 'webm';
   const fd = new FormData();
   fd.append('file', new Blob([bytes], { type: mime || 'audio/webm' }), `note.${ext}`);
   fd.append('model', STT_MODEL);
-  fd.append('language', 'he');
+  fd.append('language', LANG_NAME[lang] ? lang : 'he');
   // the names help the recogniser spell the kids correctly
-  fd.append('prompt', 'מאמן כדורגל באימון ילדים. שמות: ' + players.map((p) => p.name + (p.nick ? ` (${p.nick})` : '')).join(', '));
+  fd.append('prompt', (STT_PROMPT[lang] || STT_PROMPT.he) + players.map((p) => p.name + (p.nick ? ` (${p.nick})` : '')).join(', '));
   const r = await fetch(`${BASE}/audio/transcriptions`, {
     method: 'POST', headers: { Authorization: `Bearer ${OAI}` }, body: fd,
   });
@@ -143,9 +148,12 @@ async function transcribe(bytes: Uint8Array, mime: string, players: Player[]) {
   return String(j.text || '').trim();
 }
 
-async function parse(text: string, players: Player[], attrs: Attr[], selected: string | null, ctx: string) {
+async function parse(text: string, players: Player[], attrs: Attr[], selected: string | null, ctx: string, lang = 'he') {
+  const other = lang !== 'he' && LANG_NAME[lang]
+    ? `\n\nLANGUAGE: this note is spoken in ${LANG_NAME[lang]}, not Hebrew. Read it in ${LANG_NAME[lang]} (the Hebrew examples show the meaning), and write label and discipline_kind in ${LANG_NAME[lang]}.`
+    : '';
   const messages = [
-    { role: 'system', content: SYSTEM(players, attrs, selected, ctx) },
+    { role: 'system', content: SYSTEM(players, attrs, selected, ctx) + other },
     { role: 'user', content: text },
   ];
   const call = (response_format: unknown, msgs = messages) => fetch(`${BASE}/chat/completions`, {
@@ -183,15 +191,16 @@ Deno.serve(async (req) => {
   const attrs: Attr[] = (body.attrs || []).slice(0, 60);
   const selected: string | null = body.selected || null;
   const ctx = String(body.context || '').slice(0, 300);
+  const lang = LANG_NAME[body.lang] ? String(body.lang) : 'he';   // the app's language (2.7.0); older apps send nothing → Hebrew
   if (!body.audio && !body.text) return json({ error: 'אין הקלטה' }, 400);
 
   try {
     const bytes = body.audio ? b64ToBytes(body.audio) : null;
     if (bytes && bytes.length > 4_000_000) return json({ error: 'ההקלטה ארוכה מדי' }, 413);
-    const text = bytes ? await transcribe(bytes, String(body.mime || 'audio/webm'), players) : String(body.text);
+    const text = bytes ? await transcribe(bytes, String(body.mime || 'audio/webm'), players, lang) : String(body.text);
     if (!text) return json({ text: '', items: [] });
 
-    const raw = await parse(text, players, attrs, selected, ctx);
+    const raw = await parse(text, players, attrs, selected, ctx, lang);
     const ids = new Set(players.map((p) => p.id));
     const keys = new Set(attrs.map((a) => a.key));
     const clamp = (n: number, a: number, b: number) => Math.min(b, Math.max(a, n));

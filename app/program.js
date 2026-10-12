@@ -139,16 +139,16 @@ VIEWS.program = async function(){
   const wk=d=>{const x=new Date(d+'T12:00:00'); x.setDate(x.getDate()-x.getDay()); return x.toLocaleDateString('en-CA');};
   const groups={}; upcoming.forEach(s=>(groups[wk(s.date)]=groups[wk(s.date)]||[]).push(s));
   const row=s=>`<div class="prow" onclick="go('plan',{session:'${s.id}'})">
-      <div class="av" style="font-size:12px">${WD[new Date(s.date+'T12:00:00').getDay()]}</div>
+      <div class="av" style="font-size:12px">${I18N.weekdays()[new Date(s.date+'T12:00:00').getDay()]}</div>
       <div class="pname"><b>${esc(s.focus||s.theme||'אימון')}</b>
         <span class="xs muted">${new Date(s.date+'T12:00:00').getDate()}.${new Date(s.date+'T12:00:00').getMonth()+1}${s.start_time?' · '+String(s.start_time).slice(0,5):''} · ${s.planned_minutes||''} דק׳${s.phase&&!String(s.focus||'').includes(s.phase)?' · '+esc(s.phase):''}</span></div>
       ${s.status==='live'?'<span class="pill ok">פעיל</span>':s.date===today()?`<button class="btn sm primary" onclick="event.stopPropagation();openSession('${s.id}')">התחל</button>`:'<span class="pill">מתוכנן</span>'}</div>`;
   $('#pg').innerHTML=`
     <div class="card stack">
-      <div class="spread"><div><h2>${esc(S.team.name)}</h2>
+      <div class="spread"><div><h2><span translate="no">${esc(S.team.name)}</span></h2>
         <p class="muted sm">${upcoming.length} אימונים מתוכננים קדימה</p></div>
         <button class="btn primary" onclick="autoPlanSheet()">⚡ בנייה אוטומטית</button></div>
-      ${(cyc||[]).length?`<div class="chips">${cyc.map(c=>`<button class="chip" onclick="cycleSheet('${c.id}')">${esc(c.name)}</button>`).join('')}</div>`:''}
+      ${(cyc||[]).length?`<div class="chips">${cyc.map(c=>`<button class="chip" onclick="cycleSheet('${c.id}')"><span translate="no">${esc(c.name)}</span></button>`).join('')}</div>`:''}
     </div>
     ${upcoming.length?Object.entries(groups).map(([w,ss])=>{
       const t=ss[0].theme;
@@ -158,7 +158,7 @@ VIEWS.program = async function(){
         <button class="btn primary" onclick="autoPlanSheet()">בנייה אוטומטית של תוכנית</button><br><br>
         <button class="btn ghost" onclick="go('plan',{fresh:true})">או אימון בודד</button></div>`}
     ${past.length?`<div class="hd"><h2>אחרונים</h2></div><div class="stack">${past.slice(0,6).map(s=>`<div class="prow" onclick="openSession('${s.id}')">
-      <div class="av" style="font-size:12px">${WD[new Date(s.date+'T12:00:00').getDay()]}</div>
+      <div class="av" style="font-size:12px">${I18N.weekdays()[new Date(s.date+'T12:00:00').getDay()]}</div>
       <div class="pname"><b>${esc(s.focus||s.theme||'אימון')}</b><span class="xs muted">${fmtDate(s.date)}</span></div>
       <span class="pill ${s.status==='done'?'ok':'warn'}">${s.status==='done'?'הושלם':'לא בוצע'}</span></div>`).join('')}</div>`:''}`;
 };
@@ -187,7 +187,7 @@ function autoPlanSheet(mode){
         <label class="f">מתחילים ב-<input id="apS" type="date" value="${today()}"></label>
         <label class="f">שבועות<select id="apW">${(focusMode?[2,3,4,5,6,8]:[4,6,8,10,12,16]).map(n=>`<option ${n===(focusMode?4:8)?'selected':''}>${n}</option>`).join('')}</select></label>
       </div>
-      <label class="f">ימי אימון<div class="chips" id="apD">${WD.map((w,i)=>`<button type="button" class="chip ${days.includes(i)?'on':''}" data-d="${i}">${w}</button>`).join('')}</div></label>
+      <label class="f">ימי אימון<div class="chips" id="apD">${I18N.weekdays().map((w,i)=>`<button type="button" class="chip ${days.includes(i)?'on':''}" data-d="${i}">${w}</button>`).join('')}</div></label>
       <div class="grid2">
         <label class="f">שעה<input id="apT" type="time" value="16:00"></label>
         <label class="f">אורך (דק׳)<input id="apM" type="number" class="num" value="${S.team.session_minutes||60}"></label>
@@ -199,7 +199,7 @@ function autoPlanSheet(mode){
       <p class="xs muted" id="apInfo"></p>
       <button class="btn primary big" id="apGo">בנה תוכנית</button>
     </div>`);
-  const nameFor=()=> focusMode ? `${themeBy(focus)?.label||''} · ${$('#apW').value} שבועות` : `תוכנית ${AGES[age]||''} · ${new Date().toLocaleDateString('he-IL',{month:'long'})}`;
+  const nameFor=()=> focusMode ? `${I18N.tr(themeBy(focus)?.label||'')} · ${I18N.t('{0} שבועות',$('#apW').value)}` : I18N.t('תוכנית {0} · {1}',I18N.tr(AGES[age]||''),new Date().toLocaleDateString(I18N.loc(),{month:'long'}));
   let nameTouched=false; $('#apN').value=nameFor(); $('#apN').oninput=()=>nameTouched=true;
   const maintList=()=>seq.filter(k=>k!==focus);
   const drawSeq=()=>{
@@ -235,7 +235,7 @@ function autoPlanSheet(mode){
     $('#apGo').disabled=true; $('#apGo').textContent='בונה…';
     try{ await generateProgram({start:$('#apS').value, weeks:+$('#apW').value, days, time:$('#apT').value||null,
       minutes:+$('#apM').value||60, seq: focusMode?[focus]:seq, focus: focusMode?focus:null, maint: focusMode?maintList():null,
-      name:$('#apN').value.trim()||'תוכנית אימונים'}); }
+      name:$('#apN').value.trim()||I18N.t('תוכנית אימונים')}); }
     catch(e){ toast('שגיאה: '+(e.message||e)); $('#apGo').disabled=false; $('#apGo').textContent='בנה תוכנית'; }
   };
 }
@@ -286,8 +286,8 @@ async function generateProgram(o){
 async function cycleSheet(id){
   const {data:c}=await sb.from('coach_cycles').select('*').eq('id',id).single(); if(!c) return;
   const {count}=await sb.from('coach_sessions').select('id',{count:'exact',head:true}).eq('cycle_id',id).eq('status','planned');
-  sheet(`<h2>${esc(c.name)}</h2>
-    <p class="xs muted" style="margin:4px 0 10px">מ-${fmtDate(c.start_date)} · ${c.weeks} שבועות · ימים ${(c.weekdays||[]).map(d=>WD[d]).join(', ')} · ${count||0} אימונים שעוד לא בוצעו</p>
+  sheet(`<h2><span translate="no">${esc(c.name)}</span></h2>
+    <p class="xs muted" style="margin:4px 0 10px">מ-${fmtDate(c.start_date)} · ${c.weeks} שבועות · ימים ${(c.weekdays||[]).map(d=>I18N.weekdays()[d]).join(', ')} · ${count||0} אימונים שעוד לא בוצעו</p>
     <div class="chips" style="margin-bottom:12px">${Array.isArray(c.themes)
       ? c.themes.map((k,i)=>`<span class="chip">${i+1}. ${esc(themeBy(k)?.label||k)}</span>`).join('')
       : `<span class="chip on">מיקוד: ${esc(themeBy(c.themes?.focus)?.label||'')}</span>${(c.themes?.maint||[]).map(k=>`<span class="chip">${esc(themeBy(k)?.label||k)}</span>`).join('')}`}</div>

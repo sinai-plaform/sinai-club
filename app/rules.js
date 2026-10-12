@@ -65,7 +65,7 @@ function isShabbat(now){
   const t=(now||new Date()).getTime();
   return t>=w.start.getTime() && t<=w.end.getTime();
 }
-const hhmm = d => d.toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'});
+const hhmm = d => I18N.time(d);
 
 /* every outgoing message passes through here */
 async function guardSend(run){
@@ -115,7 +115,7 @@ const healthRows = (p,team) => healthState(p,team).map(x=>
 /* coach-side editor for the two dated fields */
 function healthForm(pid){
   const p=S.players.find(x=>x.id===pid); if(!p) return;
-  sheet(`<h2>מסמכים — ${esc(p.name)}</h2>
+  sheet(`<h2>מסמכים — <span translate="no">${esc(p.name)}</span></h2>
     <p class="xs muted" style="margin:6px 0 12px">המערכת שומרת תאריכים בלבד, לא תוכן רפואי.</p>
     <div class="stack">
       <label class="f">תאריך בדיקה רפואית<input id="hmd" type="date" value="${p.medical_cert_at||''}"></label>
@@ -142,7 +142,7 @@ VIEWS.docs = async function(){
                       .sort((a,b)=>rank[a.w]-rank[b.w]);
   const bad=rows.filter(r=>r.w==='bad').length, warn=rows.filter(r=>r.w==='warn').length;
   $('.wrap').innerHTML=`
-    <div class="card"><h2>${esc(t.name)}</h2>
+    <div class="card"><h2><span translate="no">${esc(t.name)}</span></h2>
       <p class="muted sm">${esc(LEAGUE[teamProfile(t)].label)} · ${esc(LEAGUE[teamProfile(t)].note)}</p>
       <p class="sm" style="margin-top:8px">${
         bad ? `<b>${bad}</b> שחקנים עם מסמך חסר` : 'לכל השחקנים יש את המסמכים הנדרשים.'
@@ -151,7 +151,7 @@ VIEWS.docs = async function(){
       ${rows.map(r=>`
         <div class="prow" onclick="healthForm('${r.p.id}')">
           <div class="av">${esc(initials(r.p.name))}</div>
-          <div class="pname" style="flex:1"><b>${esc(r.p.name)}</b>
+          <div class="pname" style="flex:1"><b><span translate="no">${esc(r.p.name)}</span></b>
             <span class="xs muted">${r.st.map(x=>esc(x.t)+': '+esc(x.s)).join(' · ')}</span></div>
           <span class="pill ${r.w}">${PILL[r.w]}</span></div>`).join('')}
     </div>`;

@@ -32,7 +32,7 @@ async function useToken(th){
   return error ? {error:error.message} : {user:data.user};
 }
 
-const APP_VERSION='2.6.0';
+const APP_VERSION='2.7.0';
 const S = { user:null, club:null, role:null, teams:[], team:null, players:[], attrs:[], dbDrills:[],
             session:null, sessionDrills:[], attendance:{}, match:null, view:'home', online:navigator.onLine };
 
@@ -43,7 +43,7 @@ const esc=s=>String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>
 const uid=()=>OFF.uuid();   // a real uuid even on older tablets — the database ids are uuids
 const today=()=>new Date().toLocaleDateString('en-CA');
 const initials=n=>String(n||'').trim().split(/\s+/).slice(0,2).map(w=>w[0]).join('');
-const fmtDate=d=>{const x=new Date(d);return x.toLocaleDateString('he-IL',{day:'numeric',month:'short'});};
+const fmtDate=d=>{const x=new Date(d);return x.toLocaleDateString(I18N.loc(),{day:'numeric',month:'short'});};
 const daysAgo=d=>Math.floor((Date.now()-new Date(d).getTime())/864e5);
 const LS=(k,v)=>{try{if(v===undefined){const r=localStorage.getItem('sc.'+k);return r?JSON.parse(r):null;}localStorage.setItem('sc.'+k,JSON.stringify(v));}catch(e){return null;}};
 let toastT; function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2000);}
@@ -118,7 +118,7 @@ function gr(it,w,depth){const x=it.x,y=it.y;if(it.dir==='w')return[x-depth,y-w/2
 const OP=it=>it.o!=null?`<g opacity="${it.o}">`:'', CL=it=>it.o!=null?'</g>':'';
 function svgDiag(d,cls){
   const items=(d&&d.items)||[];
-  let s=`<svg class="${cls||'dg'}" viewBox="0 0 120 80" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="דיאגרמה"><defs>
+  let s=`<svg class="${cls||'dg'}" direction="ltr" viewBox="0 0 120 80" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="דיאגרמה"><defs>
   <marker id="aW" viewBox="0 0 6 6" refX="5" refY="3" markerWidth="4" markerHeight="4" orient="auto-start-reverse"><path d="M0,0 L6,3 L0,6 Z" fill="#fff"/></marker>
   <marker id="aO" viewBox="0 0 6 6" refX="5" refY="3" markerWidth="4" markerHeight="4" orient="auto-start-reverse"><path d="M0,0 L6,3 L0,6 Z" fill="#FFD166"/></marker>
   <pattern id="nt" width="1.5" height="1.5" patternUnits="userSpaceOnUse"><path d="M0,0 L1.5,1.5 M1.5,0 L0,1.5" stroke="#fff" stroke-width=".25"/></pattern></defs>
@@ -126,7 +126,7 @@ function svgDiag(d,cls){
   for(let i=1;i<6;i+=2)s+=`<rect x="${i*20}" y="0" width="20" height="80" fill="var(--pitch2)"/>`;
   const later=[];
   items.forEach(it=>{switch(it.t){
-    case 'zone':s+=`<rect x="${it.x}" y="${it.y}" width="${it.w}" height="${it.h}" fill="#fff" fill-opacity=".10"/>`+(it.label?`<text x="${it.x+it.w/2}" y="${it.y+5}" font-size="3.4" fill="#fff" fill-opacity=".85" text-anchor="middle">${esc(it.label)}</text>`:'');break;
+    case 'zone':s+=`<rect x="${it.x}" y="${it.y}" width="${it.w}" height="${it.h}" fill="#fff" fill-opacity=".10"/>`+(it.label?`<text x="${it.x+it.w/2}" y="${it.y+5}" font-size="3.4" fill="#fff" fill-opacity=".85" text-anchor="middle">${esc(I18N.tr(it.label))}</text>`:'');break;
     case 'line':s+=`<line x1="${it.x1}" y1="${it.y1}" x2="${it.x2}" y2="${it.y2}" stroke="#fff" stroke-width=".6" stroke-opacity=".8"/>`;break;
     case 'ring':s+=`<circle cx="${it.cx}" cy="${it.cy}" r="${it.r}" fill="none" stroke="#fff" stroke-width=".6" stroke-dasharray="2 1.5" stroke-opacity=".8"/>`;break;
     case 'hoop':s+=`<circle cx="${it.x}" cy="${it.y}" r="3.6" fill="none" stroke="#FFD166" stroke-width="1"/>`;break;
@@ -137,10 +137,10 @@ function svgDiag(d,cls){
     case 'run':later.push(OP(it)+`<polyline points="${poly(it.pts)}" fill="none" stroke="#FFD166" stroke-width=".7" marker-end="url(#aO)"/>`+CL(it));break;
     case 'drib':later.push(OP(it)+`<path d="${zig(it.pts)}" fill="none" stroke="#fff" stroke-width=".7" marker-end="url(#aW)"/>`+CL(it));break;
     case 'shot':later.push(OP(it)+`<polyline points="${poly(it.pts)}" fill="none" stroke="#fff" stroke-width="1.5" marker-end="url(#aW)"/>`+CL(it));break;
-    case 'p':later.push(`<circle cx="${it.x}" cy="${it.y}" r="3.3" fill="${TEAMC[it.s]||TEAMC.a}" stroke="#fff" stroke-width=".7"/>`+(it.n?`<text x="${it.x}" y="${it.y+1.2}" font-size="${String(it.n).length>1?2.4:3.2}" fill="#fff" text-anchor="middle" font-weight="700">${esc(it.n)}</text>`:(it.s==='co'?`<text x="${it.x}" y="${it.y+1.2}" font-size="3" fill="#fff" text-anchor="middle" font-weight="700">מ</text>`:'')));break;
+    case 'p':later.push(`<circle cx="${it.x}" cy="${it.y}" r="3.3" fill="${TEAMC[it.s]||TEAMC.a}" stroke="#fff" stroke-width=".7"/>`+(it.n?`<text x="${it.x}" y="${it.y+1.2}" font-size="${String(it.n).length>1?2.4:3.2}" fill="#fff" text-anchor="middle" font-weight="700">${esc(it.n)}</text>`:(it.s==='co'?`<text x="${it.x}" y="${it.y+1.2}" font-size="3" fill="#fff" text-anchor="middle" font-weight="700">${I18N.t('מ')}</text>`:'')));break;
     case 'ball':later.push(`<circle cx="${it.x}" cy="${it.y}" r="1.7" fill="#fff" stroke="#1E1E1E" stroke-width=".45"/><circle cx="${it.x}" cy="${it.y}" r=".6" fill="#1E1E1E"/>`);break;
     case 'badge':later.push(`<circle cx="${it.x}" cy="${it.y}" r="2.6" fill="${it.hi?'#1E45B0':'#0E1B3D'}" stroke="#fff" stroke-width=".4"/><text x="${it.x}" y="${it.y+1.1}" font-size="3" fill="#fff" text-anchor="middle" font-weight="700">${esc(it.n)}</text>`);break;
-    case 'txt':later.push(`<text x="${it.x}" y="${it.y}" font-size="3.4" fill="#fff" text-anchor="middle" paint-order="stroke" stroke="#0B2A18" stroke-width=".9" stroke-opacity=".7">${esc(it.s)}</text>`);break;
+    case 'txt':later.push(`<text x="${it.x}" y="${it.y}" font-size="3.4" fill="#fff" text-anchor="middle" paint-order="stroke" stroke="#0B2A18" stroke-width=".9" stroke-opacity=".7">${esc(I18N.tr(it.s))}</text>`);break;
   }});
   return s+later.join('')+'</svg>';
 }
@@ -392,7 +392,7 @@ function goBack(){
 $$('#nav button').forEach(b=>b.onclick=()=>go(b.dataset.go));
 function screen(title, body, actions){
   $('#app').innerHTML = `<div class="topbar"><div class="in">
-      ${TOP_VIEWS.includes(S.view)?'':'<button class="iconbtn" id="bk" aria-label="חזרה">→</button>'}
+      ${TOP_VIEWS.includes(S.view)?'':`<button class="iconbtn" id="bk" aria-label="חזרה">${I18N.back()}</button>`}
       <h1>${esc(title)}</h1>${actions||''}</div></div>
     <div class="wrap">${body}</div>`;
   const bk=$('#bk'); if(bk) bk.onclick=goBack;
@@ -464,7 +464,8 @@ function renderLogin(err){
     <div style="text-align:center;margin-top:14px" class="stack">
       ${mode==='in'?'<button class="btn ghost sm" id="toUp">מאמן חדש? פתיחת חשבון</button>':'<button class="btn ghost sm" id="toIn">← חזרה לכניסה</button>'}
       ${mode==='signup'&&!sent?'<button class="btn ghost sm" id="toEm">הרשמה עם אימייל במקום</button>':''}
-    </div></div>`;
+    </div>
+    <div class="langrow">${I18N.picker()}</div></div>`;
     if(err) showErr(err);
     const on=(id,f)=>{ const x=$('#'+id); if(x) x.onclick=f; };
     on('toOtp',()=>{ mode='otp'; sent=null; err=null; draw(); });
@@ -567,7 +568,7 @@ function renderNewClub(){
       <p class="xs muted" id="m2"></p>
     </div></div>`;
   $('#mk').onclick=async()=>{
-    const cn=$('#cn').value.trim()||'המועדון שלי', tn=$('#tn').value.trim()||'קבוצה א׳';
+    const cn=$('#cn').value.trim()||I18N.t('המועדון שלי'), tn=$('#tn').value.trim()||I18N.t('קבוצה א׳');
     $('#m2').textContent='יוצר…';
     const {data:club,error}=await sb.from('coach_clubs').insert({name:cn}).select().single();
     if(error){$('#m2').textContent='שגיאה: '+error.message;return;}
@@ -576,6 +577,15 @@ function renderNewClub(){
     bootstrap();
   };
 }
+
+/* ---------- language ----------
+   The DOM is translated in place; screens are drawn again so dates, weekdays and lists
+   built in code follow the new language too. */
+I18N.onChange(()=>{
+  if($('#sheetWrap').classList.contains('open')) closeSheet();
+  if(S.user && (S.role==='parent'||S.role==='player') && typeof famHome==='function' && FAM.kids.length) return famHome();
+  if(S.user && S.club && VIEWS[S.view]) return go(S.view, CUR_ARG, {replace:true});
+});
 
 /* ---------- start ----------
    every screen module must be parsed before we route anywhere,

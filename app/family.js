@@ -41,7 +41,7 @@ async function bootstrapFamily(){
 
 function famBar(title, back){
   return `<div class="topbar"><div class="in">
-    ${back?'<button class="iconbtn" onclick="famHome()">→</button>':''}
+    ${back?`<button class="iconbtn" onclick="famHome()">${I18N.back()}</button>`:''}
     <h1>${esc(title)}</h1></div></div>`;
 }
 
@@ -65,9 +65,9 @@ async function famHome(){
     ${FAM.kids.map(k=>{const r=rate(k.id);return `
       <div class="kid" onclick="famKid('${k.id}')">
         <div class="av">${esc(initials(k.name))}</div>
-        <div class="pname" style="flex:1"><b>${esc(k.name)}</b>
+        <div class="pname" style="flex:1"><b><span translate="no">${esc(k.name)}</span></b>
           <span class="xs muted">${r!=null?'נוכחות '+r+'%':'טרם נרשמה נוכחות'}</span></div>
-        <span class="muted">‹</span></div>`;}).join('')}
+        <span class="muted">${I18N.fwd()}</span></div>`;}).join('')}
 
     ${S.role==='parent'?`<div class="card" style="margin-top:14px">
       <h3>הרשאות</h3>
@@ -78,6 +78,8 @@ async function famHome(){
     </div>`:''}
 
     ${myLoginCard()}
+
+    <label class="spread card" style="margin-top:14px;padding:10px 14px"><span>🌐 שפה</span>${I18N.picker()}</label>
 
     <div class="stack" style="margin-top:16px">
       <button class="btn ghost" onclick="signOut()">יציאה</button></div>
@@ -150,7 +152,7 @@ async function famKid(id){
   }
 
   $('.wrap').innerHTML = `
-    <div class="card"><h2>${esc(k.name)}</h2>
+    <div class="card"><h2><span translate="no">${esc(k.name)}</span></h2>
       <p class="muted sm">${t?esc(t.name):''}${pct!=null?' · נוכחות '+pct+'%':''}</p></div>
 
     ${goals&&goals.length?`<div class="hd"><h2>יעדים</h2></div><div class="stack">
@@ -245,7 +247,7 @@ async function famKid(id){
       <div class="card" style="margin-top:10px"><p>כניסה עם: <b dir="ltr">${esc(login)}</b></p>
       ${password?`<p>סיסמה: <b dir="ltr">${esc(password)}</b></p>`:`<p class="sm">בכניסה הראשונה ${esc(first)} לוחץ "כניסה ראשונה", מקבל קוד ב-SMS ובוחר סיסמה.</p>`}</div>
       <button class="btn primary big" style="margin-top:12px" id="kcopy">העתקה לשליחה לילד</button>`);
-    $('#kcopy').onclick=()=>{ const t=`כניסה ל-SINAI Club: ${location.origin}/app/\nטלפון / שם משתמש: ${login}\n`+(password?`סיסמה: ${password}`:'בפעם הראשונה: "כניסה ראשונה" ← קוד ב-SMS ← בוחרים סיסמה');
+    $('#kcopy').onclick=()=>{ const t=I18N.t('כניסה ל-SINAI Club: {0}',location.origin+'/app/')+'\n'+I18N.t('טלפון / שם משתמש: {0}',login)+'\n'+(password?I18N.t('סיסמה: {0}',password):I18N.t('בפעם הראשונה: "כניסה ראשונה" ← קוד ב-SMS ← בוחרים סיסמה'));
       (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>toast('הועתק')).catch(()=>toast(t)); };
     famKid(k.id);
   };
@@ -260,7 +262,7 @@ async function famKid(id){
 
 function famNotify(id){
   const k=FAM.kids.find(x=>x.id===id);
-  const msg=`שלום, לגבי ${k.name}: `;
+  const msg=I18N.t('שלום, לגבי {0}:',k.name)+' ';
   waOpen('https://wa.me/?text='+encodeURIComponent(msg));
 }
 

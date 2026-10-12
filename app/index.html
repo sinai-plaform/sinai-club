@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
 <meta name="theme-color" content="#1E45B0">
-<meta name="app-version" content="2.5.0">
+<meta name="app-version" content="2.7.0">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/svg+xml" href="icon.svg">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
@@ -14,6 +14,11 @@
 <meta name="apple-mobile-web-app-title" content="SINAI Club">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>SINAI Club</title>
+<link rel="i18n" data-lang="en" href="i18n/en.js?v=87e77145">
+<link rel="i18n" data-lang="ru" href="i18n/ru.js?v=fd1b5840">
+<link rel="i18n" data-lang="ar" href="i18n/ar.js?v=d6855aac">
+<link rel="i18n" data-lang="es" href="i18n/es.js?v=485a1132">
+<script src="i18n.js?v=56debe60"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Secular+One&family=Heebo:wght@400;500;700&family=Sora:wght@400;700&display=swap">
 <style>
@@ -66,9 +71,13 @@ a{color:var(--accent)} :root[data-theme="dark"] a{color:var(--accent2)}
 .sw input{opacity:0;width:0;height:0}
 .sw i{position:absolute;inset:0;background:var(--line);border-radius:99px;transition:.18s}
 .sw i:before{content:"";position:absolute;width:21px;height:21px;border-radius:50%;
-  background:#fff;top:3px;right:3px;transition:.18s;box-shadow:0 1px 3px rgba(13,31,79,.25)}
+  background:#fff;top:3px;inset-inline-end:3px;transition:.18s;box-shadow:0 1px 3px rgba(13,31,79,.25)}
 .sw input:checked + i{background:var(--ok)}
 .sw input:checked + i:before{transform:translateX(-19px)}
+[dir="ltr"] .sw input:checked + i:before{transform:translateX(19px)}
+/* language picker */
+.langsel{width:auto;padding:6px 10px;font-size:13px;border-radius:999px;background:var(--surface)}
+.langrow{display:flex;justify-content:center;margin-top:14px}
 .togrow{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
 .togrow:last-child{border-bottom:0}
 .togrow .t{flex:1}.togrow .t b{display:block;font-size:14.5px}
@@ -235,16 +244,16 @@ table.tbl th{color:var(--muted);font-weight:500;font-size:12.5px}
 <script src="drills.js?v=588a5ba0"></script>
 <script src="config.js?v=b8a874fc"></script>
 <script src="offline.js?v=9837fcec"></script>
-<script src="core.js?v=2e61fbcf"></script>
-<script src="rules.js?v=9e86f482"></script>
-<script src="screens.js?v=2c1097cb"></script>
-<script src="screens2.js?v=792369e7"></script>
-<script src="roster.js?v=5ea0674e"></script>
-<script src="family.js?v=dd6a350e"></script>
+<script src="core.js?v=d0de492b"></script>
+<script src="rules.js?v=67640515"></script>
+<script src="screens.js?v=69ba60ca"></script>
+<script src="screens2.js?v=3c6e21c5"></script>
+<script src="roster.js?v=59dc9af7"></script>
+<script src="family.js?v=d526951b"></script>
 <script src="board.js?v=2cb537f6"></script>
-<script src="anim.js?v=225911c5"></script>
-<script src="program.js?v=eccf17ca"></script>
-<script src="voice.js?v=228ff3b0"></script>
+<script src="anim.js?v=0d6a886e"></script>
+<script src="program.js?v=8e9589e3"></script>
+<script src="voice.js?v=9501e610"></script>
 </body>
 </html>
 
