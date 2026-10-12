@@ -2,14 +2,19 @@
 // A short voice note from the pitch (hold the mic, speak, let go) → Hebrew transcript →
 // structured notes: ratings (attribute + 1–5 score + weight), discipline entries, plain notes.
 // The audio is never stored: it lives only inside this request.
-// Secrets: OPENAI_API_KEY (required). Optional: OPENAI_STT_MODEL, OPENAI_TEXT_MODEL.
+// Provider (one secret is enough):
+//   GROQ_API_KEY   — free tier (Whisper large-v3 + gpt-oss-120b), no data retention by default. Used first.
+//   OPENAI_API_KEY — paid, a little better at Hebrew names.
+// Optional overrides: VOICE_STT_MODEL, VOICE_TEXT_MODEL.
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 
 const SB_URL = Deno.env.get('SUPABASE_URL')!;
 const SRK = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-const OAI = Deno.env.get('OPENAI_API_KEY') || '';
-const STT_MODEL = Deno.env.get('OPENAI_STT_MODEL') || 'gpt-4o-transcribe';
-const TEXT_MODEL = Deno.env.get('OPENAI_TEXT_MODEL') || 'gpt-4.1-mini';
+const GROQ = Deno.env.get('GROQ_API_KEY') || '';
+const OAI = GROQ || Deno.env.get('OPENAI_API_KEY') || '';
+const BASE = GROQ ? 'https://api.groq.com/openai/v1' : 'https://api.openai.com/v1';
+const STT_MODEL = Deno.env.get('VOICE_STT_MODEL') || (GROQ ? 'whisper-large-v3' : 'gpt-4o-transcribe');
+const TEXT_MODEL = Deno.env.get('VOICE_TEXT_MODEL') || (GROQ ? 'openai/gpt-oss-120b' : 'gpt-4.1-mini');
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -130,7 +135,7 @@ async function transcribe(bytes: Uint8Array, mime: string, players: Player[]) {
   fd.append('language', 'he');
   // the names help the recogniser spell the kids correctly
   fd.append('prompt', 'מאמן כדורגל באימון ילדים. שמות: ' + players.map((p) => p.name + (p.nick ? ` (${p.nick})` : '')).join(', '));
-  const r = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+  const r = await fetch(`${BASE}/audio/transcriptions`, {
     method: 'POST', headers: { Authorization: `Bearer ${OAI}` }, body: fd,
   });
   const j = await r.json().catch(() => ({}));
@@ -139,19 +144,21 @@ async function transcribe(bytes: Uint8Array, mime: string, players: Player[]) {
 }
 
 async function parse(text: string, players: Player[], attrs: Attr[], selected: string | null, ctx: string) {
-  const r = await fetch('https://api.openai.com/v1/chat/completions', {
+  const messages = [
+    { role: 'system', content: SYSTEM(players, attrs, selected, ctx) },
+    { role: 'user', content: text },
+  ];
+  const call = (response_format: unknown, msgs = messages) => fetch(`${BASE}/chat/completions`, {
     method: 'POST',
     headers: { Authorization: `Bearer ${OAI}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      model: TEXT_MODEL,
-      temperature: 0.1,
-      response_format: { type: 'json_schema', json_schema: SCHEMA },
-      messages: [
-        { role: 'system', content: SYSTEM(players, attrs, selected, ctx) },
-        { role: 'user', content: text },
-      ],
-    }),
+    body: JSON.stringify({ model: TEXT_MODEL, temperature: 0.1, response_format, messages: msgs }),
   });
+  let r = await call({ type: 'json_schema', json_schema: SCHEMA });
+  // a model without strict schemas: ask for plain JSON in the same shape
+  if (r.status === 400) {
+    const msgs = [{ role: 'system', content: messages[0].content + '\n\nReply with JSON only, exactly this schema: ' + JSON.stringify(SCHEMA.schema) }, messages[1]];
+    r = await call({ type: 'json_object' }, msgs);
+  }
   const j = await r.json().catch(() => ({}));
   if (!r.ok) throw new Error('ניתוח נכשל: ' + (j?.error?.message || r.status));
   try { return JSON.parse(j.choices[0].message.content).items || []; } catch { return []; }
@@ -160,7 +167,7 @@ async function parse(text: string, players: Player[], attrs: Attr[], selected: s
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS });
   if (req.method !== 'POST') return json({ error: 'POST only' }, 405);
-  if (!OAI) return json({ error: 'חסר מפתח OPENAI_API_KEY בהגדרות השרת' }, 500);
+  if (!OAI) return json({ error: 'חסר מפתח GROQ_API_KEY בהגדרות השרת' }, 500);
 
   // only a signed-in coach of a club
   const jwt = (req.headers.get('Authorization') || '').replace(/^Bearer\s+/i, '');
