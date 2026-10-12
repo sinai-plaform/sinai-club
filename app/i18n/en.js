@@ -796,6 +796,8 @@ I18N.add("en",{
 "{0} שנים": "{0} years",
 "· גיל יחסי גבוה בשנתון": "· relatively old for the year group",
 "· גיל יחסי נמוך בשנתון": "· relatively young for the year group",
+"גיל יחסי גבוה בשנתון": "relatively old for the year group",
+"גיל יחסי נמוך בשנתון": "relatively young for the year group",
 "🎂 אין תאריך לידה —": "🎂 No date of birth —",
 "ציון כללי": "Overall rating",
 "רמה": "Level",

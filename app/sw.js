@@ -2,7 +2,7 @@
    The data is handled inside the app (offline.js); this file only stores the app's own files
    (about 1.3 MB with the four language packs, so switching language works without signal too).
    Bump V when this file changes. */
-const V = 'sc-app-v9';   // 2.7.0 — five languages (i18n.js + i18n/*.js, kept offline like every other app file)
+const V = 'sc-app-v10';   // 2.7.0 — five languages (i18n.js + i18n/*.js, kept offline like every other app file)
 const SHARED = ['https://cdn.jsdelivr.net/', 'https://fonts.googleapis.com/', 'https://fonts.gstatic.com/'];
 
 async function appFiles(html) {
