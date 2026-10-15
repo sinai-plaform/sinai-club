@@ -2,7 +2,7 @@
    The data is handled inside the app (offline.js); this file only stores the app's own files
    (about 2 MB with the eight language packs, so switching language works without signal too).
    Bump V when this file changes. */
-const V = 'sc-app-v11';   // 2.8.0 — nine languages: + de, fr, it, pt (i18n/*.js, kept offline like every other app file)
+const V = 'sc-app-v12';   // 2.9.0 — roster import reads scanned PDFs / photos (coach-roster) and opens or updates teams by group
 const SHARED = ['https://cdn.jsdelivr.net/', 'https://fonts.googleapis.com/', 'https://fonts.gstatic.com/'];
 
 async function appFiles(html) {
