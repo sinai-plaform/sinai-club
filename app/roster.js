@@ -235,12 +235,21 @@ function putRosterText(lines, how){
 const ROSTER_FN = SB_URL + '/functions/v1/coach-roster';
 async function aiRoster(payload){
   const {data:{session}}=await sb.auth.getSession();
-  const r=await fetch(ROSTER_FN,{method:'POST',headers:{'Content-Type':'application/json',
-    Authorization:'Bearer '+(session?session.access_token:''),apikey:SB_KEY},
-    body:JSON.stringify({...payload, teams:S.teams.map(t=>t.name), hint:S.club?.name||''})});
-  const j=await r.json().catch(()=>({}));
-  if(!r.ok) throw new Error(j.error||('שגיאה '+r.status));
-  return j.rows||[];
+  const body=JSON.stringify({...payload, teams:S.teams.map(t=>t.name), hint:S.club?.name||''});
+  const was=$('#rstat')?.textContent||'';
+  for(let attempt=0;;attempt++){
+    const r=await fetch(ROSTER_FN,{method:'POST',headers:{'Content-Type':'application/json',
+      Authorization:'Bearer '+(session?session.access_token:''),apikey:SB_KEY},body});
+    const j=await r.json().catch(()=>({}));
+    // the free AI tier reads a few pages a minute — wait as long as the server says, then go on
+    if(r.status===429 && attempt<8){
+      for(let s=Math.max(3,Math.min(90,+j.retry_after||20));s>0;s--){
+        rosterStatus(I18N.t('{0} (ממתין {1} שניות לשרת)',was,s)); await new Promise(ok=>setTimeout(ok,1000)); }
+      rosterStatus(was); continue;
+    }
+    if(!r.ok) throw new Error(j.error||('שגיאה '+r.status));
+    return j.rows||[];
+  }
 }
 const clip=s=>String(s||'').replace(/[\t,;|#@]/g,' ').replace(/\s+/g,' ').trim();
 /* the function's rows → lines the parser (and the coach) can read */

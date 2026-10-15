@@ -1759,5 +1759,6 @@ I18N.add("it",{
 "עדכון: {0}": "Aggiornamento: {0}",
 "ייבוא שחקן אחד": "Importa un giocatore",
 "ייבוא {0} שחקנים": "Importa {0} giocatori",
-"מזהה טקסט בעמוד {0} מתוך {1}…": "Riconoscimento del testo, pagina {0} di {1}…"
+"מזהה טקסט בעמוד {0} מתוך {1}…": "Riconoscimento del testo, pagina {0} di {1}…",
+"{0} (ממתין {1} שניות לשרת)": "{0} (attesa del server {1} s)"
 });

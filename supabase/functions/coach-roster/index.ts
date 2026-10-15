@@ -20,7 +20,7 @@ const PROVIDERS: Provider[] = [];
 if (GROQ) PROVIDERS.push({
   base: 'https://api.groq.com/openai/v1', key: GROQ,
   vision: [Deno.env.get('ROSTER_VISION_MODEL') || '', 'qwen/qwen3.8-27b', 'qwen/qwen3.6-27b', 'meta-llama/llama-4-scout-17b-16e-instruct'].filter(Boolean),
-  text: [Deno.env.get('ROSTER_TEXT_MODEL') || '', 'openai/gpt-oss-120b', 'qwen/qwen3.8-27b'].filter(Boolean),
+  text: [Deno.env.get('ROSTER_TEXT_MODEL') || '', 'openai/gpt-oss-120b', 'openai/gpt-oss-20b', 'qwen/qwen3.8-27b'].filter(Boolean),
 });
 if (OAI) PROVIDERS.push({ base: 'https://api.openai.com/v1', key: OAI, vision: ['gpt-4.1-mini'], text: ['gpt-4.1-mini'] });
 
@@ -197,6 +197,9 @@ Deno.serve(async (req) => {
     })).filter((r: any) => r.player && /[\p{L}]/u.test(r.player));
     return json({ rows, model, page: { group: pageGroup, activity, columns: cols } });
   } catch (e) {
-    return json({ error: (e as Error).message }, 502);
+    // the free tier allows a few pages a minute: tell the app how long to wait, it retries by itself
+    const m = (e as Error).message, wait = [...m.matchAll(/try again in ([\d.]+)s/g)].map((x) => +x[1]);
+    if (/rate limit/i.test(m)) return json({ error: 'השרת עמוס — מנסה שוב', retry_after: Math.ceil(Math.min(...wait, 60)) || 20 }, 429);
+    return json({ error: m }, 502);
   }
 });
