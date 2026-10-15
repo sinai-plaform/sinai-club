@@ -32,7 +32,7 @@ const CORS = {
 const json = (b: unknown, s = 200) =>
   new Response(JSON.stringify(b), { status: s, headers: { ...CORS, 'Content-Type': 'application/json' } });
 
-const SHAPE = `{"rows":[{"player":"","parent":"","phone":"","phone2":"","birth":"","grade":"","group":"","school":"","note":""}]}`;
+const SHAPE = `{"page":{"activity":"","group":"","columns":[]},"rows":[{"player":"","parent":"","phone":"","phone2":"","birth":"","grade":"","group":"","school":"","note":""}]}`;
 
 const SYSTEM = (teams: string[], hint: string) => `
 You read a registration list of a children's football (soccer) school, usually in Hebrew, often a scanned or photographed
@@ -53,6 +53,23 @@ For each child return one row:
 - school: the child's school if a column has it, else "".
 - note: anything else short and useful on that row (medical note, "אח של…", payment status), else "".
 
+Common format — the community centre (מתנ"ס) participants report, "דו"ח משתתפים בקבוצות":
+- The page header has "שם החוג" (the activity, e.g. בי"ס לכדור רגל — NOT the group) and "שם הקבוצה" (the group, e.g.
+  "כדורגל גן", "כדורגל ג׳-ד׳"). group = the value after "שם הקבוצה:" for every child on that page.
+- Columns from the right: "משפחה" (family name), "פרטי" (first name), then registration period, balance, paid, discount —
+  ignore the money and the dates of the registration period.
+- Under each child there is a second line "כתובת: <address> טל: <phone> <phone>". The phone(s) come from there.
+  The address is NOT a group, NOT a grade and NOT a note.
+- player = first name + space + family name ("פרטי משפחה"), e.g. family "לביא", first "דוד" → "דוד לביא".
+- A number inside an address or a house number is never a grade. grade only if a grade column or "כיתה" is written.
+
+Hebrew reading: letters that look alike in print and scans (ה/ח/ת, ד/ר/ך, ו/ז/ן, ב/כ, ס/ם, ע/צ, י/ו) — read each carefully.
+These are real Israeli first and family names; when a letter is unclear, prefer the reading that is a real name.
+
+Page fields: page.activity = the value after "שם החוג:" (or the list's title), page.group = the value after "שם הקבוצה:"
+(or a group heading for the whole page), exactly as printed; page.columns = the table's column headers, right to left.
+Copy page.group into every row's group unless the row sits under its own heading.
+
 Rules:
 - Skip header rows, totals, page numbers, signatures, empty rows and crossed-out rows.
 - Read Hebrew right to left: the first column is on the RIGHT.
@@ -70,10 +87,10 @@ function clean(content: string) {
   return JSON.parse(s);
 }
 
-async function ask(kind: 'vision' | 'text', system: string, user: unknown) {
+async function ask(kind: 'vision' | 'text', system: string, user: unknown, prefer = '') {
   const errors: string[] = [];
   for (const p of PROVIDERS) {
-    for (const model of p[kind]) {
+    for (const model of (prefer && p === PROVIDERS[0] ? [prefer, ...p[kind]] : p[kind])) {
       const base = { model, temperature: 0, max_tokens: 8000,
         messages: [{ role: 'system', content: system }, { role: 'user', content: user }] };
       // some models refuse a parameter the next one needs — try the richest request first
@@ -121,6 +138,12 @@ Deno.serve(async (req) => {
 
   let body: any;
   try { body = await req.json(); } catch { return json({ error: 'בקשה לא תקינה' }, 400); }
+  if (body.models) {   // diagnostics: which models the provider offers right now
+    const p = PROVIDERS[0];
+    const r = await fetch(`${p.base}/models`, { headers: { Authorization: `Bearer ${p.key}` } });
+    const j = await r.json().catch(() => ({}));
+    return json({ models: (j.data || []).map((m: any) => m.id) });
+  }
   const teams: string[] = (body.teams || []).slice(0, 60).map((t: unknown) => S(t, 60)).filter(Boolean);
   const hint = S(body.hint, 300);
   const images: string[] = (body.images || []).slice(0, 2);
@@ -134,13 +157,45 @@ Deno.serve(async (req) => {
       ? [{ type: 'text', text: 'Registration list page(s). Extract every child.' },
          ...images.map((b) => ({ type: 'image_url', image_url: { url: b.startsWith('data:') ? b : `data:image/jpeg;base64,${b}` } }))]
       : 'Registration list (text extracted from a file; columns separated by tabs, right-to-left order may be scrambled):\n\n' + text;
-    const { model, out } = await ask(images.length ? 'vision' : 'text', system, user);
+    // with on-device OCR text, the text model reads the page (its letters are exact); the image is used only
+    // to repair the few names the OCR could not read
+    const useText = !!text.trim();
+    const { model, out } = await ask(useText ? 'text' : 'vision', system,
+      useText ? (body.ocr
+        ? 'Registration list (OCR text of one scanned page, line by line; Latin fragments are OCR failures — return the row anyway with what is readable):\n\n'
+        : 'Registration list (text extracted from a file; columns separated by tabs, right-to-left order may be scrambled):\n\n') + text : user,
+      S(body.model, 80));
+    if (useText && images.length && Array.isArray(out?.rows)) {
+      const bad = out.rows.map((r: any, i: number) => ({ i, r })).filter(({ r }) => /[A-Za-z]/.test(String(r.player || '')) || !/\s/.test(String(r.player || '').trim()));
+      if (bad.length) {
+        try {
+          const fix = await ask('vision',
+            'You fix names in a Hebrew registration list. For each listed row, read the child\'s first name and family name from the image ' +
+            '(the row is identified by the phone number printed under it, and by the readable part of the name). Columns from the right: ' +
+            'family name, first name. Return JSON only: {"fix":[{"i":0,"player":"first family"}]} with the same i values. Copy Hebrew exactly; if unreadable, keep the given text.',
+            [{ type: 'text', text: JSON.stringify(bad.map(({ i, r }) => ({ i, player: r.player, phone: r.phone }))) },
+             { type: 'image_url', image_url: { url: images[0].startsWith('data:') ? images[0] : `data:image/jpeg;base64,${images[0]}` } }]);
+          for (const f of (fix.out?.fix || [])) {
+            const r = out.rows[+f.i]; const p = S(f.player, 60);
+            if (r && p && /[א-ת]/.test(p) && !/[A-Za-z]/.test(p)) r.player = p;
+          }
+        } catch { /* keep the OCR reading; the coach can edit it */ }
+      }
+    }
+    const page = out?.page || {};
+    const pageGroup = S(page.group, 60), activity = S(page.activity, 60);
+    const cols = (Array.isArray(page.columns) ? page.columns : []).map((c: unknown) => S(c, 40)).join(' ');
+    const gradeCol = /כית|שכב|grade|class/i.test(cols) || !cols;   // a grade only when the table has a grade column
     const rows = (Array.isArray(out?.rows) ? out.rows : []).map((r: any) => ({
       player: S(r.player, 60), parent: S(r.parent, 60), phone: S(r.phone, 24), phone2: S(r.phone2, 24),
       birth: /^\d{4}-\d{2}-\d{2}$/.test(S(r.birth, 10)) ? S(r.birth, 10) : '',
-      grade: S(r.grade, 20), group: S(r.group, 60), school: S(r.school, 60), note: S(r.note, 120),
+      grade: gradeCol ? S(r.grade, 20) : '', school: S(r.school, 60), note: S(r.note, 120),
+      // the activity name ("בי"ס לכדור רגל") or an address is never the group; the page's group wins then
+      group: (() => { const g = S(r.group, 60);
+        if (pageGroup && (!g || (activity && (activity.includes(g) || g.includes(activity))) || /כתובת|רחוב|חוג/.test(g) || !/[\p{L}]/u.test(g))) return pageGroup;
+        return g; })(),
     })).filter((r: any) => r.player && /[\p{L}]/u.test(r.player));
-    return json({ rows, model });
+    return json({ rows, model, page: { group: pageGroup, activity, columns: cols } });
   } catch (e) {
     return json({ error: (e as Error).message }, 502);
   }

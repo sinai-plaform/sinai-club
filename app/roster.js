@@ -271,11 +271,17 @@ function drawScaled(src,w,h,max=2000){
   c.width=Math.round(w*k); c.height=Math.round(h*k);
   const x=c.getContext('2d'); x.fillStyle='#fff'; x.fillRect(0,0,c.width,c.height); x.drawImage(src,0,0,c.width,c.height); return c;
 }
-async function ocrLocal(canvases){
-  rosterStatus('אין חיבור לשרת — מזהה טקסט במכשיר (פחות מדויק)…');
+/* text recognition on the device: exact Hebrew letters (the vision model guesses at them),
+   then the server only has to understand the layout. One worker for all pages. */
+async function ocrPages(canvases){
   await loadScript('https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js');
-  const out=[];
-  for(const c of canvases){ const {data}=await Tesseract.recognize(c,'heb+eng'); out.push(...data.text.split('\n')); }
+  const w=await Tesseract.createWorker('heb+eng'), out=[];
+  try{
+    for(let i=0;i<canvases.length;i++){
+      rosterStatus(canvases.length>1?I18N.t('מזהה טקסט בעמוד {0} מתוך {1}…',i+1,canvases.length):'מזהה טקסט…');
+      const {data}=await w.recognize(canvases[i]); out.push(data.text||'');
+    }
+  } finally { w.terminate(); }
   return out;
 }
 
@@ -332,16 +338,22 @@ async function readLines(lines, how){
   putRosterText(lines,how);    // offline / server error: the simple local reader
 }
 async function readImages(canvases, how){
+  let texts=[];
+  try{ texts=await ocrPages(canvases); }catch(e){ console.warn('ocr',e); }
   try{
     const pages=[];
     for(let i=0;i<canvases.length;i++){
       rosterStatus(canvases.length>1?I18N.t('קורא עמוד {0} מתוך {1}…',i+1,canvases.length):'קורא את הרשימה…');
-      pages.push(await aiRoster({images:[toJpeg(canvases[i])]}));
+      // printed text recognised well → read the text; handwriting / a poor photo → the model looks at the page
+      const t=texts[i]||'', letters=(t.match(/[א-ת]/g)||[]).length;
+      // the OCR text goes with the page image: the image repairs the few names the OCR could not read
+      pages.push(await aiRoster(letters>60 ? {text:t, ocr:1, images:[toJpeg(canvases[i])]} : {images:[toJpeg(canvases[i])]}));
     }
     return putRosterText(aiLines(carryGroups(pages)),how);
   }catch(e){
     if(navigator.onLine && !/fetch|network|Load failed/i.test(e.message||'')) throw e;
-    return putRosterText(await ocrLocal(canvases),how);
+    rosterStatus('אין חיבור לשרת — מזהה טקסט במכשיר (פחות מדויק)…');
+    return putRosterText(texts.join('\n').split('\n'),how);
   }
 }
 async function readGoogleSheet(u){

@@ -1758,5 +1758,6 @@ I18N.add("de",{
 "קיים": "Vorhanden",
 "עדכון: {0}": "Aktualisierung: {0}",
 "ייבוא שחקן אחד": "Einen Spieler importieren",
-"ייבוא {0} שחקנים": "{0} Spieler importieren"
+"ייבוא {0} שחקנים": "{0} Spieler importieren",
+"מזהה טקסט בעמוד {0} מתוך {1}…": "Texterkennung auf Seite {0} von {1} …"
 });
