@@ -58,7 +58,8 @@ function rgFromBirth(b){
 }
 const rgProfile=g=>g==null?'b':g<=2?'a':g<=4?'b':g<=7?'c':'d';
 const nName=s=>String(s||'').replace(/\s+/g,' ').trim();
-const nTeam=s=>nName(s).replace(/[׳'״"\s\-–_.]/g,'').replace(/^(קבוצת|קבוצה|כיתות|כיתה|שכבת|שכבה)/,'');
+/* "כדורגל גן" on the community-centre report is the coach's team "גן" */
+const nTeam=s=>nName(s).replace(/כדור ?רגל/g,'').replace(/[׳'״"\s\-–_.]/g,'').replace(/^(קבוצת|קבוצה|כיתות|כיתה|שכבת|שכבה)/,'');
 const isoToIL=b=>b?b.split('-').reverse().join('/'):'';
 
 function parseRoster(text){
