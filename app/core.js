@@ -32,7 +32,7 @@ async function useToken(th){
   return error ? {error:error.message} : {user:data.user};
 }
 
-const APP_VERSION='2.9.0';
+const APP_VERSION='3.0.0';
 const S = { user:null, club:null, role:null, teams:[], team:null, players:[], attrs:[], dbDrills:[],
             session:null, sessionDrills:[], attendance:{}, match:null, view:'home', online:navigator.onLine };
 
@@ -261,12 +261,13 @@ function localCounts(playerId, sessionId){ return LOCAL_OBS.filter(o=>o.player_i
    So one tap moves a score a little, many taps move it a lot, old taps fade over a month,
    and an attribute with few observations stays close to the player's general level. */
 const SRC_W={match:1.3,test:1.5,challenge:0.7};
-function scoreFromObs(obs){
-  const now=Date.now(); const byAttr={}; let pw=0, pv=0;
+// asOf (optional): the score as it stood at that moment — for the monthly report's "previous month"
+function scoreFromObs(obs, asOf){
+  const now=asOf?new Date(asOf).getTime():Date.now(); const byAttr={}; let pw=0, pv=0;
   obs.forEach(o=>{
     if(o.voided) return;
     const days=(now-new Date(o.at).getTime())/864e5;
-    if(days>400) return;
+    if(days>400 || days<0) return;
     const v=1+(o.score-1)*4.75, ow=+(o.weight||1);
     const w=(SRC_W[o.source]||1)*ow*Math.pow(0.5, days/28);
     pw+=w; pv+=w*v;

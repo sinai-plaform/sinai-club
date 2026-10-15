@@ -2,7 +2,7 @@
    The data is handled inside the app (offline.js); this file only stores the app's own files
    (about 2 MB with the eight language packs, so switching language works without signal too).
    Bump V when this file changes. */
-const V = 'sc-app-v15';   // 2.9.0 — roster import reads scanned PDFs / photos (coach-roster) and opens or updates teams by group
+const V = 'sc-app-v16';   // 3.0.0 — build-a-session, monthly reports, voice rating, protected conversations, development plan, Hindi
 const SHARED = ['https://cdn.jsdelivr.net/', 'https://fonts.googleapis.com/', 'https://fonts.gstatic.com/'];
 
 async function appFiles(html) {
@@ -55,6 +55,8 @@ self.addEventListener('fetch', e => {
   if (!own && !SHARED.some(p => req.url.startsWith(p))) return;      // the database is not handled here
 
   // the page: newest from the network, the saved one when there is no signal
+  // pages other than the app (the parent's report link) — straight from the network, never stored as the app
+  if (req.mode === 'navigate' && own && !/\/app\/(index\.html)?$/.test(url.pathname)) return;
   if (req.mode === 'navigate') {
     e.respondWith((async () => {
       const c = await caches.open(V);

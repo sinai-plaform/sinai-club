@@ -198,7 +198,8 @@ function renderMatch(){
     <div class="hd"><h2 style="color:var(--ta)">קבוצה א׳</h2></div>
     <div class="tiles" id="tilesA"></div>
     <div class="hd"><h2 style="color:var(--tb)">קבוצה ב׳</h2></div>
-    <div class="tiles" id="tilesB"></div>`);
+    <div class="tiles" id="tilesB"></div>
+    ${typeof voiceRateBtn==='function'?voiceRateBtn():''}`);
   drawMatchTiles();
   $('#mpp').onclick=()=>{
     if(MATCH.timer){clearInterval(MATCH.timer);MATCH.timer=null;$('#mpp').textContent='▶';}
@@ -281,7 +282,7 @@ VIEWS.player = async function(pid){
     sb.from('coach_observations').select('*').eq('player_id',pid).eq('voided',false).order('at',{ascending:false}).limit(1200),
     sb.from('coach_discipline').select('*').eq('player_id',pid).order('at',{ascending:false}).limit(20),
     sb.from('coach_tests').select('*').eq('player_id',pid).order('at',{ascending:false}).limit(20),
-    sb.from('coach_goals').select('*').eq('player_id',pid).order('created_at',{ascending:false}).limit(5),
+    sb.from('coach_goals').select('*').eq('player_id',pid).is('archived_at',null).order('created_at',{ascending:false}).limit(20),
     sb.from('coach_attendance').select('present,session_id').eq('player_id',pid).limit(60),
     sb.from('coach_players').select('*').eq('id',pid).maybeSingle()
   ]);
@@ -346,9 +347,7 @@ VIEWS.player = async function(pid){
 
     ${vals.length?`<div class="card" style="margin-top:10px">${radar(attrs,sc)}</div>`:''}
 
-    <div class="hd"><h2>יעד אישי</h2><button class="btn sm" onclick="goalForm('${pid}')">+</button></div>
-    ${(goals||[]).length?`<div class="stack">${goals.map(g=>`<div class="prow"><div class="pname"><b class="sm">${esc(g.text)}</b>
-      <span class="xs muted">${g.due?'עד '+fmtDate(g.due):''}</span></div>${g.done_at?'<span class="pill ok">הושג</span>':`<button class="btn sm" onclick="doneGoal('${g.id}','${pid}')">✓</button>`}</div>`).join('')}</div>`:'<p class="muted sm">אין יעד פעיל.</p>'}
+    ${devPlanHtml(pid, goals||[], sc)}
 
     <div class="hd"><h2>משמעת והתנהגות</h2><button class="btn sm" onclick="discForm('${pid}')">+</button></div>
     ${(disc||[]).length?`<div class="stack">${disc.slice(0,5).map(d=>`<div class="prow">
@@ -368,7 +367,11 @@ VIEWS.player = async function(pid){
     <div class="hd"><h2>מסמכים וכשירות</h2><button class="btn sm" onclick="healthForm('${pid}')">עריכה</button></div>
     <div class="card">${healthRows(p,S.team)}</div>
 
-    <button class="btn big" style="margin-top:16px" onclick="parentMsg('${pid}')">הודעה להורה</button>`;
+    <div class="row" style="gap:8px;margin-top:16px">
+      <button class="btn big" style="flex:1" onclick="openThread('${pid}')">💬 הודעה לשחקן ולהורים</button>
+      <button class="btn big" style="flex:1" onclick="go('report',{pid:'${pid}'})">📄 דוח חודשי</button></div>
+    <button class="btn ghost" style="margin-top:8px;width:100%" onclick="parentMsg('${pid}')">עדכון קצר להורה בוואטסאפ</button>`;
+  goalsAutoReach(pid, goals||[], sc);
 };
 function radar(attrs,sc){
   const pts=attrs.slice(0,8);
@@ -384,15 +387,6 @@ function radar(attrs,sc){
     ${pts.map((a,i)=>{const x=cx+(R+9)*Math.cos(ang(i)),y=cy+(R+9)*Math.sin(ang(i));
       return `<text x="${x.toFixed(1)}" y="${(y+1.5).toFixed(1)}" font-size="5" fill="var(--muted)" text-anchor="middle">${esc(a.label)}</text>`;}).join('')}
   </svg>`;
-}
-function goalForm(pid){
-  sheet(`<h2>יעד אישי</h2><div class="stack" style="margin-top:12px">
-    <label class="f">מה עובדים עליו<input id="gt" placeholder="נגיעה ראשונה עם גוף פתוח"></label>
-    <label class="f">עד תאריך<input id="gd" type="date"></label>
-    <button class="btn primary big" id="gs">שמירה</button></div>`);
-  $('#gs').onclick=async()=>{ const t=$('#gt').value.trim(); if(!t)return;
-    await sb.from('coach_goals').insert({player_id:pid,text:t,due:$('#gd').value||null});
-    closeSheet(); go('player',pid); };
 }
 async function doneGoal(id,pid){ await sb.from('coach_goals').update({done_at:new Date().toISOString()}).eq('id',id); go('player',pid); }
 function discForm(pid){
@@ -414,7 +408,7 @@ function discForm(pid){
     const p=S.players.find(x=>x.id===pid);
     const txt=I18N.t('שלום, כאן המאמן של {0}. רציתי לעדכן לגבי {1}: {2}.',S.team.name,p.name,I18N.tr(row.kind)+(row.note?' — '+row.note:''))+' '+(row.action?I18N.t('טיפלנו בזה: {0}.',row.action)+' ':'')+I18N.t('נשמח לדבר.');
     const ph=(p.parent_phone||'').replace(/\D/g,'').replace(/^0/,'972');
-    await waOpen('https://wa.me/'+(ph||'')+'?text='+encodeURIComponent(txt));
+    if(await waOpen('https://wa.me/'+(ph||'')+'?text='+encodeURIComponent(txt))) logMsg({player_id:pid,kind:'discipline_parent',body:txt});
     closeSheet(); go('player',pid);
   };
 }
@@ -425,7 +419,7 @@ function parentMsg(pid){
   const up=Object.entries(sc).filter(([k,v])=>v.trend>=1).map(([k])=>ATTR_LABEL(k));
   const txt=I18N.t('שלום! עדכון קצר על {0} מהחודש האחרון ב{1}:',p.name,S.team.name)+' '+(up.length?I18N.t('התקדמות יפה ב{0}.',up.map(x=>I18N.tr(x)).join(', ')):I18N.t('עובד יפה באימונים.'))+' '+I18N.t('נמשיך לעבוד. תודה!');
   const ph=(p.parent_phone||'').replace(/\D/g,'').replace(/^0/,'972');
-  waOpen('https://wa.me/'+(ph||'')+'?text='+encodeURIComponent(txt));
+  waOpen('https://wa.me/'+(ph||'')+'?text='+encodeURIComponent(txt)).then(ok=>{ if(ok&&typeof logMsg==='function') logMsg({player_id:pid,kind:'parent_update',body:txt}); });
 }
 
 /* ---------- TESTS ---------- */
@@ -536,6 +530,8 @@ VIEWS.reports = async function(){
 VIEWS.more = function(){
   screen('עוד', `<div class="stack">
     <button class="btn big" onclick="go('reports')">📊 דוחות קבוצה</button>
+    <button class="btn big" onclick="go('monthly')">📄 דוחות חודשיים להורים</button>
+    <button class="btn big" onclick="go('threads')">💬 שיחות עם שחקנים והורים</button>
     <button class="btn big" onclick="go('tests')">⏱ מדידות זמן ומרחק</button>
     <button class="btn big" onclick="openBoard()">▦ לוח טקטי</button>
     <button class="btn big" onclick="go('match')">🥅 מצב משחק</button>
@@ -550,12 +546,17 @@ VIEWS.more = function(){
     <button class="btn big" onclick="go('settings')">🏫 מועדון וקבוצות</button>
     <button class="btn big hide" id="toFam" onclick="S.role='parent';bootstrapFamily()">👨‍👧 מעבר לאפליקציית ההורה</button>
     <label class="spread card" style="padding:10px 14px"><span>🌐 שפה</span>${I18N.picker()}</label>
+    ${window.SCFX?`<div class="card" style="padding:10px 14px"><label class="spread"><span>💱 מטבע</span>${SCFX.picker('langsel')}</label>
+      <p class="xs muted" id="fxnote" style="margin-top:6px"></p></div>`:''}
     <div class="sep"></div>
     <p class="xs muted"><span translate="no">${esc(S.club?.name||'')}</span> · ${esc(whoAmI())} · ${S.role==='coach'?'מאמן':S.role}</p>
     <p class="xs muted">ממתינים לסנכרון: ${OFF.pending()}</p>
     <p class="xs muted" dir="ltr" style="text-align:end">SINAI Club v${APP_VERSION}</p>
     <button class="btn ghost" onclick="flushQueue()">סנכרון עכשיו</button>
     <button class="btn danger" onclick="signOut()">יציאה</button></div>`);
+  if(window.SCFX){ const fx=()=>{ const n=$('#fxnote'); if(!n) return; const c=SCFX.get();
+      n.textContent=c==='ILS'?I18N.t('מחירים ותשלומים מוצגים בשקלים'):`₪100 = ${SCFX.price(100).text} · ${SCFX.note()}`; };
+    if(!VIEWS.more._fx){ VIEWS.more._fx=1; SCFX.onChange(fx); } SCFX.start().then(fx); fx(); }
   sb.from('coach_guardians').select('id',{count:'exact',head:true}).eq('user_id',S.user.id)
     .then(({count})=>{ const b=$('#toFam'); if(b&&count) b.classList.remove('hide'); });
 };

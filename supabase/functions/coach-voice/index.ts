@@ -1,4 +1,4 @@
-// SINAI Club — coach-voice (2.6.0)
+// SINAI Club — coach-voice (2.6.0; 3.0: "rate" mode — explicit scores, confirmed by the coach before saving)
 // A short voice note from the pitch (hold the mic, speak, let go) → Hebrew transcript →
 // structured notes: ratings (attribute + 1–5 score + weight), discipline entries, plain notes.
 // The audio is never stored: it lives only inside this request.
@@ -120,6 +120,88 @@ const SCHEMA = {
   },
 };
 
+// ---------- "rate" mode: the coach dictates explicit scores ("יוסי מסירה 4, דני בעיטה 3") ----------
+const RATE_SYSTEM = (players: Player[], attrs: Attr[], selected: string | null, ctx: string) => `
+A youth football coach dictates explicit ratings on the pitch: player name, attribute, score 1–5.
+Example: "יוסי מסירה 4, דני בעיטה 3, אורי כדרור חמש" → three ratings.
+
+ROSTER (id | name | nickname | shirt | position):
+${players.map((p) => `${p.id} | ${p.name} | ${p.nick || ''} | ${p.no ?? ''} | ${p.pos || ''}`).join('\n')}
+
+ATTRIBUTES (key = label). Use ONLY these keys; map synonyms and singular/plural to them (מסירה/מסירות/פס → passing, בעיטה/בעיטות/סיום → shooting, קבלה/נגיעה ראשונה → first_touch, etc.):
+${attrs.map((a) => `${a.key} = ${a.label}`).join('\n')}
+${selected ? `If a rating names no player, it is about player ${selected}.` : ''}
+${ctx ? `Context: ${ctx}` : ''}
+
+Rules:
+- One rating per (player, attribute, score) said. A player with two attributes ("דני מסירה 4 ובעיטה 3") → two ratings.
+- score is the number the coach SAID (digits or words: אחת/אחד=1, שתיים/שניים=2, שלוש/שלושה=3, ארבע/ארבעה=4, חמש/חמישה=5). Never invent or adjust a score. If no number was said for an attribute, skip it. A number above 5 → skip that rating.
+- Transcripts from a noisy pitch contain errors: match names by sound (similar Hebrew spelling, nickname, shirt number "מספר 7"). If a name could be several roster players, leave player_ids empty and put them in candidate_ids. If it matches nobody, both empty and keep the heard name in name_heard.
+- heard = the exact words of this rating from the transcript.
+- If nothing usable, ratings: [].`;
+const RATE_SCHEMA = {
+  name: 'coach_ratings', strict: true,
+  schema: {
+    type: 'object', additionalProperties: false, required: ['ratings'],
+    properties: { ratings: { type: 'array', items: {
+      type: 'object', additionalProperties: false,
+      required: ['player_ids', 'candidate_ids', 'name_heard', 'attr', 'score', 'heard'],
+      properties: {
+        player_ids: { type: 'array', items: { type: 'string' } },
+        candidate_ids: { type: 'array', items: { type: 'string' } },
+        name_heard: { type: 'string' }, attr: { type: 'string' }, score: { type: 'integer' }, heard: { type: 'string' },
+      } } } },
+  },
+};
+// no AI available: a plain reading of "<name> <attribute> <number>" in Hebrew
+const NUM_HE: Record<string, number> = { 'אחת': 1, 'אחד': 1, 'שתיים': 2, 'שתים': 2, 'שניים': 2, 'שנים': 2, 'שלוש': 3, 'שלושה': 3,
+  'ארבע': 4, 'ארבעה': 4, 'חמש': 5, 'חמישה': 5 };
+const SYN: Record<string, string[]> = { passing: ['מסירה', 'מסירות', 'פס'], shooting: ['בעיטה', 'בעיטות', 'סיום', 'סיומת'],
+  dribbling: ['כדרור', 'כדרורים'], first_touch: ['קבלה', 'כדור ראשון', 'נגיעה ראשונה'], heading: ['נגיחה', 'נגיחות'],
+  speed: ['מהירות'], agility: ['זריזות'], strength: ['כוח'], stamina: ['סיבולת', 'כושר'], decisions: ['החלטות', 'קבלת החלטות'],
+  teamwork: ['עבודת צוות'], determination: ['נחישות'], focus: ['ריכוז'], leadership: ['מנהיגות'], tackling: ['תיקול', 'תיקולים'],
+  ball_control: ['שליטה', 'שליטה בכדור'], coordination: ['קואורדינציה', 'תיאום'], courage: ['אומץ'], listening: ['הקשבה'],
+  long_pass: ['ארוכה', 'מסירה ארוכה', 'מסירות ארוכות'], crossing: ['הגבהה', 'הגבהות'] };
+function plainRatings(text: string, players: Player[], attrs: Attr[]) {
+  const out: any[] = [];
+  const keys = new Set(attrs.map((a) => a.key));
+  const words: [string, string][] = [];
+  for (const a of attrs) { words.push([a.label, a.key]); for (const s of SYN[a.key] || []) words.push([s, a.key]); }
+  words.sort((a, b) => b[0].length - a[0].length);
+  for (const part of text.split(/[,،.;\n]| וגם | ו(?=[א-ת]+ [א-ת]+ \d)/)) {
+    const s = part.trim(); if (!s) continue;
+    const m = s.match(/(\d|אחת|אחד|שתיים|שתים|שניים|שנים|שלושה|שלוש|ארבעה|ארבע|חמישה|חמש)\s*$/);
+    if (!m) continue;
+    const score = /\d/.test(m[1]) ? +m[1] : NUM_HE[m[1]];
+    if (!(score >= 1 && score <= 5)) continue;
+    const w = words.find(([lbl]) => s.includes(lbl)); if (!w || !keys.has(w[1])) continue;
+    const name = s.slice(0, s.indexOf(w[0])).replace(/^ו/, '').trim();
+    const first = (n: string) => n.split(/\s+/)[0];
+    const ids = name ? players.filter((p) => p.name === name || first(p.name) === first(name) || (p.nick && p.nick === name)).map((p) => p.id) : [];
+    out.push({ player_ids: ids.length === 1 ? ids : [], candidate_ids: ids.length > 1 ? ids : [], name_heard: name, attr: w[1], score, heard: s });
+  }
+  return out;
+}
+async function parseRatings(text: string, players: Player[], attrs: Attr[], selected: string | null, ctx: string, lang = 'he') {
+  const other = lang !== 'he' && LANG_NAME[lang] ? `\nThe coach speaks ${LANG_NAME[lang]}; number words are in that language.` : '';
+  const messages = [{ role: 'system', content: RATE_SYSTEM(players, attrs, selected, ctx) + other }, { role: 'user', content: text }];
+  const call = (rf: unknown, msgs = messages) => fetch(`${BASE}/chat/completions`, {
+    method: 'POST', headers: { Authorization: `Bearer ${OAI}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ model: TEXT_MODEL, temperature: 0, response_format: rf, messages: msgs }),
+  });
+  try {
+    let r = await call({ type: 'json_schema', json_schema: RATE_SCHEMA });
+    if (r.status === 400) {
+      r = await call({ type: 'json_object' }, [{ role: 'system', content: messages[0].content + '\n\nReply with JSON only, exactly this schema: ' + JSON.stringify(RATE_SCHEMA.schema) }, messages[1]]);
+    }
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(String(r.status));
+    return JSON.parse(j.choices[0].message.content).ratings || [];
+  } catch {
+    return plainRatings(text, players, attrs);
+  }
+}
+
 function b64ToBytes(b64: string) {
   const bin = atob(b64);
   const out = new Uint8Array(bin.length);
@@ -128,21 +210,23 @@ function b64ToBytes(b64: string) {
 }
 
 const LANG_NAME: Record<string, string> = { he: 'Hebrew', en: 'English', ru: 'Russian', ar: 'Arabic', es: 'Spanish',
-  de: 'German', fr: 'French', it: 'Italian', pt: 'Portuguese' };
+  de: 'German', fr: 'French', it: 'Italian', pt: 'Portuguese', hi: 'Hindi' };
 const STT_PROMPT: Record<string, string> = {
   he: 'מאמן כדורגל באימון ילדים. שמות: ', en: 'Youth football coach at training. Names: ', ru: 'Детский футбольный тренер на тренировке. Имена: ',
   ar: 'مدرب كرة قدم في تدريب أطفال. الأسماء: ', es: 'Entrenador de fútbol infantil en el entrenamiento. Nombres: ',
   de: 'Jugendfußballtrainer im Training. Namen: ', fr: 'Entraîneur de football des jeunes à l’entraînement. Prénoms : ',
-  it: 'Allenatore di calcio giovanile in allenamento. Nomi: ', pt: 'Treinador de futebol de base no treino. Nomes: ' };
+  it: 'Allenatore di calcio giovanile in allenamento. Nomi: ', pt: 'Treinador de futebol de base no treino. Nomes: ',
+  hi: 'युवा फ़ुटबॉल कोच ट्रेनिंग में। नाम: ' };
 
-async function transcribe(bytes: Uint8Array, mime: string, players: Player[], lang = 'he') {
+async function transcribe(bytes: Uint8Array, mime: string, players: Player[], lang = 'he', extra = '') {
   const ext = mime.includes('mp4') || mime.includes('aac') ? 'm4a' : mime.includes('ogg') ? 'ogg' : 'webm';
   const fd = new FormData();
   fd.append('file', new Blob([bytes], { type: mime || 'audio/webm' }), `note.${ext}`);
   fd.append('model', STT_MODEL);
   fd.append('language', LANG_NAME[lang] ? lang : 'he');
   // the names help the recogniser spell the kids correctly
-  fd.append('prompt', (STT_PROMPT[lang] || STT_PROMPT.he) + players.map((p) => p.name + (p.nick ? ` (${p.nick})` : '')).join(', '));
+  fd.append('prompt', ((STT_PROMPT[lang] || STT_PROMPT.he) + players.map((p) => p.name + (p.nick ? ` (${p.nick})` : '')).join(', ') + extra).slice(0, 900));
+  fd.append('temperature', '0');
   const r = await fetch(`${BASE}/audio/transcriptions`, {
     method: 'POST', headers: { Authorization: `Bearer ${OAI}` }, body: fd,
   });
@@ -200,8 +284,23 @@ Deno.serve(async (req) => {
   try {
     const bytes = body.audio ? b64ToBytes(body.audio) : null;
     if (bytes && bytes.length > 4_000_000) return json({ error: 'ההקלטה ארוכה מדי' }, 413);
-    const text = bytes ? await transcribe(bytes, String(body.mime || 'audio/webm'), players, lang) : String(body.text);
-    if (!text) return json({ text: '', items: [] });
+    const rate = body.mode === 'rate';
+    const extra = rate ? '. ' + attrs.map((a) => a.label).join(', ') + '. ' + (lang === 'he' ? 'למשל: יוסי מסירה 4, דני בעיטה 3.' : '') : '';
+    const text = bytes ? await transcribe(bytes, String(body.mime || 'audio/webm'), players, lang, extra) : String(body.text).slice(0, 1000);
+    if (!text) return json({ text: '', items: [], ratings: [] });
+    if (rate) {
+      const ids = new Set(players.map((p) => p.id)); const keys = new Set(attrs.map((a) => a.key));
+      const raw = await parseRatings(text, players, attrs, selected, ctx, lang);
+      const ratings = raw.map((r: any) => ({
+        player_ids: (r.player_ids || []).filter((x: string) => ids.has(x)).slice(0, 1),
+        candidate_ids: (r.candidate_ids || []).filter((x: string) => ids.has(x)),
+        name_heard: String(r.name_heard || '').slice(0, 40),
+        attr: keys.has(r.attr) ? r.attr : null,
+        score: Math.round(+r.score),
+        heard: String(r.heard || '').slice(0, 120),
+      })).filter((r: any) => r.score >= 1 && r.score <= 5);
+      return json({ text, ratings });
+    }
 
     const raw = await parse(text, players, attrs, selected, ctx, lang);
     const ids = new Set(players.map((p) => p.id));

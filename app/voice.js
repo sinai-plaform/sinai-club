@@ -80,7 +80,7 @@ document.addEventListener('pointerdown',e=>{
   e.preventDefault();
   if(VOICE.rec){ voiceStop(); return; }
   try{ b.setPointerCapture&&b.setPointerCapture(e.pointerId); }catch(err){}
-  VOICE.toggle=false; VOICE.stopSoon=false; VOICE.t0=Date.now(); voiceStart(b.dataset.pid||null);
+  VOICE.toggle=false; VOICE.stopSoon=false; VOICE.t0=Date.now(); VOICE.mode=b.dataset.mode||''; voiceStart(b.dataset.pid||null);
 });
 document.addEventListener('pointerup',e=>{
   const b=e.target.closest('.vmic'); if(!b||VOICE.toggle) return;
@@ -132,7 +132,7 @@ async function voiceDone(){
   if(ms<700||!VOICE.chunks.length) return toast('קצר מדי, צריך להחזיק ולדבר');
   const blob=new Blob(VOICE.chunks,{type:VOICE.mime});
   const roster=S.players.map(p=>({id:p.id,name:p.name,nick:p.nickname||null,no:p.shirt_no||null,pos:p.position||null}));
-  const item={id:uid(),at:VOICE.at,pid:VOICE.pid,ctx:VOICE.ctx,mime:VOICE.mime,blob,roster,lang:I18N.lang};   // the language the coach spoke
+  const item={id:uid(),at:VOICE.at,pid:VOICE.pid,ctx:VOICE.ctx,mime:VOICE.mime,blob,roster,lang:I18N.lang,mode:VOICE.mode||''};   // the language the coach spoke
   try{ await VQ.put(item); }catch(e){ VOICE.mem=item; }
   await vqCount();
   if(navigator.onLine) voiceFlush(); else toast('נשמר. יישלח כשתחזור קליטה');
@@ -149,20 +149,20 @@ async function voiceFlush(){
       const r=await voiceSend(q);
       if(r.offline) break;
       if(r.error){ if(VOICE.err!==r.error){ VOICE.err=r.error; toast('הקלטה: '+r.error); } if(r.keep) break; }
-      else { VOICE.err=''; await voiceApply(q,r); }
+      else { VOICE.err=''; if(q.mode==='rate') voiceRateResult(q,r); else await voiceApply(q,r); }
       try{ await VQ.del(q.id); }catch(e){} if(VOICE.mem&&VOICE.mem.id===q.id) VOICE.mem=null;
     }
   } finally { VOICE.busy=false; await vqCount(); }
 }
 async function voiceSend(q){
   try{
-    const audio=await new Promise((ok,bad)=>{ const fr=new FileReader();
+    const audio=q.text?null:await new Promise((ok,bad)=>{ const fr=new FileReader();
       fr.onload=()=>ok(String(fr.result).split(',')[1]||''); fr.onerror=bad; fr.readAsDataURL(q.blob); });
     const {data:{session}}=await sb.auth.getSession();
     const attrs=teamAttrs(true).map(a=>({key:a.key,label:a.label}));
     const r=await fetch(VOICE_FN,{method:'POST',headers:{'Content-Type':'application/json',
       Authorization:'Bearer '+(session?session.access_token:''),apikey:SB_KEY},
-      body:JSON.stringify({audio,mime:q.mime,roster:q.roster,attrs,selected:q.pid,context:q.ctx&&q.ctx.desc||'',lang:q.lang||'he'})});
+      body:JSON.stringify({audio,text:q.text||undefined,mime:q.mime,roster:q.roster,attrs,selected:q.pid,context:q.ctx&&q.ctx.desc||'',lang:q.lang||'he',mode:q.mode||''})});
     const j=await r.json().catch(()=>({}));
     if(!r.ok) return {error:j.error||('שגיאה '+r.status), keep:r.status>=500||r.status===401};
     return j;
@@ -244,6 +244,7 @@ async function voiceUndo(){
 
 /* ---------- the inbox ("לטיפול") ---------- */
 function voiceInbox(){
+  if(vRates().length) return voiceRateSheet(vRates()[0].id);
   const box=vInbox();
   if(!box.length) return sheet(`<h2>הערות קוליות</h2><div class="empty" style="margin-top:12px">הכול מטופל ✓${VQ_COUNT?`<br><br>${VQ_COUNT} הקלטות ממתינות לקליטה`:''}</div>`);
   const pool=S.players;
@@ -291,7 +292,7 @@ function voiceFab(){
   if(!show){ f&&f.remove(); bx&&bx.remove(); return; }
   if(!f){ f=document.createElement('button'); f.id='vfab'; f.type='button'; f.className='vmic vfab'; f.setAttribute('aria-label','הערה קולית'); document.body.appendChild(f); }
   f.innerHTML='🎙'; if(VOICE.rec) f.classList.add('rec');
-  const n=vInbox().length, w=VQ_COUNT;
+  const n=vInbox().length+vRates().length, w=VQ_COUNT;
   if(n||w){
     if(!bx){ bx=document.createElement('button'); bx.id='vbox'; bx.className='vbox'; bx.onclick=voiceInbox; document.body.appendChild(bx); }
     bx.innerHTML=`${n?`לטיפול ${n}`:''}${n&&w?' · ':''}${w?(VOICE.busy?'שולח…':`ממתין ${w}`):''}`;
@@ -333,3 +334,89 @@ const wakeLabel=()=>({session:'באימון ובמשחק',always:'תמיד',off:
 })();
 addEventListener('online',()=>{ voiceFlush(); });
 setTimeout(()=>{ vqCount().then(()=>{ if(VQ_COUNT) voiceFlush(); }); },3000);
+
+/* ===== rating by voice (3.0) =====
+   On the rating screen: "יוסי מסירה 4, דני בעיטה 3". The coach's own numbers, read back on a
+   confirmation screen — nothing is saved until the coach presses save. Each line can be
+   corrected (player / attribute / score) or removed. Recorded without signal → waits on the
+   tablet, and the confirmation opens when it comes back ("לאישור" on the mic). */
+const vRates=()=>LS('vrates')||[];
+const vRatesSave=x=>{ LS('vrates',x.slice(-30)); voiceFab(); };
+function voiceRateBtn(){
+  if(!voiceOk()) return `<button type="button" class="btn" style="width:100%;margin-top:10px" onclick="voiceRateType()">⌨️ דירוג בהקלדה: "יוסי מסירה 4"</button>`;
+  return `<button type="button" class="vmic" data-mode="rate" style="margin-top:10px">🎙 דירוג בקול — "יוסי מסירה 4, דני בעיטה 3"</button>`;
+}
+function voiceRateResult(q,res){
+  const list=(res.ratings||[]).map(r=>({pid:r.player_ids[0]||'',cands:r.candidate_ids||[],heard:r.name_heard||'',attr:r.attr||'',score:r.score,src:r.heard||''}));
+  if(!list.length){ toast(res.text?I18N.t('לא זוהו דירוגים: "{0}"',res.text):'לא נשמע דיבור'); return; }
+  const x={id:q.id,at:q.at,ctx:q.ctx,text:res.text||'',rows:list};
+  vRatesSave(vRates().filter(r=>r.id!==x.id).concat([x]));
+  // open the confirmation right away when the coach is still on a rating screen
+  if(['live','match','attend'].includes(S.view) && !$('#sheetWrap').classList.contains('open')) voiceRateSheet(x.id);
+  else toast(I18N.t('{0} דירוגים ממתינים לאישור',list.length));
+}
+function voiceRateSheet(id){
+  const x=vRates().find(r=>r.id===id); if(!x) return closeSheet();
+  const attrs=teamAttrs(true);
+  const pl=S.players;
+  const rowHtml=(r,i)=>{
+    const opts=(r.cands.length?r.cands.map(c=>pl.find(p=>p.id===c)).filter(Boolean):[]);
+    const rest=pl.filter(p=>!opts.includes(p));
+    return `<div class="vitem" data-i="${i}" style="${r.pid&&r.attr?'':'border-color:var(--warn)'}">
+      <div class="spread"><span class="xs muted">"<span translate="no">${esc(r.src)}</span>"</span>
+        <button class="btn sm ghost" onclick="vrDel('${id}',${i})" aria-label="הסרה">✕</button></div>
+      <div class="grid2" style="margin-top:6px">
+        <select onchange="vrSet('${id}',${i},'pid',this.value)" aria-label="שחקן">
+          <option value="">${r.heard?esc(I18N.t('מי זה "{0}"?',r.heard)):esc(I18N.t('בחרו שחקן'))}</option>
+          ${opts.map(p=>`<option value="${p.id}" ${p.id===r.pid?'selected':''}>⭐ ${esc(p.name)}</option>`).join('')}
+          ${rest.map(p=>`<option value="${p.id}" ${p.id===r.pid?'selected':''}>${esc(p.name)}${p.shirt_no?' #'+p.shirt_no:''}</option>`).join('')}
+        </select>
+        <select onchange="vrSet('${id}',${i},'attr',this.value)" aria-label="תכונה">
+          <option value="">${esc(I18N.t('תכונה?'))}</option>
+          ${attrs.map(a=>`<option value="${a.key}" ${a.key===r.attr?'selected':''}>${esc(a.label)}</option>`).join('')}
+        </select></div>
+      <div class="scorerow" style="margin-top:6px">${[1,2,3,4,5].map(v=>`<button data-s="${v}" style="${v===r.score?'outline:2px solid var(--accent);background:var(--accent-b)':''}" onclick="vrSet('${id}',${i},'score',${v})">${v}</button>`).join('')}</div>
+    </div>`;
+  };
+  const ok=x.rows.filter(r=>r.pid&&r.attr&&r.score).length;
+  sheet(`<div class="spread"><h2>אישור דירוגים</h2><span class="xs muted">${fmtDate(x.at)} ${I18N.time(x.at)}</span></div>
+    <p class="xs muted" style="margin:4px 0 10px">שמענו: "<span translate="no">${esc(x.text)}</span>". בודקים, מתקנים אם צריך, ושומרים.</p>
+    <div class="stack" id="vrrows">${x.rows.map(rowHtml).join('')}</div>
+    <button class="btn primary big" style="margin-top:12px" id="vrsave" ${ok?'':'disabled'}>${esc(I18N.t('שמירת {0} דירוגים',ok))}</button>
+    <div class="row" style="gap:8px;margin-top:8px">
+      <button class="btn ghost" style="flex:1" onclick="vrDrop('${id}')">ביטול הכול</button>
+      ${voiceOk()?`<button type="button" class="vmic" data-mode="rate" style="flex:1;margin:0;min-height:42px">🎙 עוד</button>`:''}</div>`);
+  $('#vrsave').onclick=()=>vrCommit(id);
+}
+function vrUpd(id,fn){ const all=vRates(); const x=all.find(r=>r.id===id); if(!x) return; fn(x); vRatesSave(all); voiceRateSheet(id); }
+function vrSet(id,i,k,v){ vrUpd(id,x=>{ x.rows[i][k]=k==='score'?+v:v; }); }
+function vrDel(id,i){ vrUpd(id,x=>{ x.rows.splice(i,1); }); if(!(vRates().find(r=>r.id===id)||{rows:[]}).rows.length) vrDrop(id); }
+function vrDrop(id){ vRatesSave(vRates().filter(r=>r.id!==id)); closeSheet(); }
+async function vrCommit(id){
+  const x=vRates().find(r=>r.id===id); if(!x) return;
+  const good=x.rows.filter(r=>r.pid&&r.attr&&r.score>=1&&r.score<=5);
+  const b=$('#vrsave'); if(b) b.disabled=true;
+  for(const r of good) await addObs(r.pid,r.attr,r.score,{source:x.ctx.match_id?'match':'drill',tag:'🎙 '+ATTR_LABEL(r.attr)+' '+r.score,
+    note:x.text,team_id:x.ctx.team_id,session_id:x.ctx.session_id,drill_id:x.ctx.drill_id,match_id:x.ctx.match_id,at:x.at});
+  vRatesSave(vRates().filter(r=>r.id!==id)); closeSheet();
+  toast(I18N.t('נשמרו {0} דירוגים',good.length));
+  if(typeof drawTiles==='function') drawTiles(); if(S.match&&typeof drawMatchTiles==='function') drawMatchTiles();
+  if(vRates().length) setTimeout(()=>voiceRateSheet(vRates()[0].id),300);
+}
+/* the same, typed — for a noisy pitch or a device without a microphone */
+function voiceRateType(){
+  sheet(`<h2>דירוג בהקלדה</h2><p class="xs muted" style="margin:4px 0 10px">למשל: יוסי מסירה 4, דני בעיטה 3</p>
+    <textarea id="vrt" rows="3"></textarea><button class="btn primary big" style="margin-top:10px" id="vrtgo">המשך לאישור</button>`);
+  $('#vrtgo').onclick=async()=>{
+    const text=$('#vrt').value.trim(); if(!text) return;
+    if(!navigator.onLine) return toast('צריך קליטה לפענוח. אפשר לדרג בהקשה על השחקן.');
+    const di=S.sessionDrills?.[typeof LIVE!=='undefined'?LIVE.idx:0];
+    const q={id:uid(),at:new Date().toISOString(),pid:null,mode:'rate',text,lang:I18N.lang,
+      ctx:{team_id:S.team?.id||null,session_id:S.session?.id||null,drill_id:S.view==='live'&&di?di.id:null,match_id:S.match?S.match.id:null,desc:''},
+      roster:S.players.map(p=>({id:p.id,name:p.name,nick:p.nickname||null,no:p.shirt_no||null,pos:p.position||null}))};
+    $('#vrtgo').disabled=true;
+    const r=await voiceSend(q);
+    if(r.error||r.offline){ $('#vrtgo').disabled=false; return toast(r.error||'אין חיבור'); }
+    closeSheet(); voiceRateResult(q,r);
+  };
+}

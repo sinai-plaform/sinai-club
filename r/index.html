@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#1E45B0">
+<title>SINAI Club — דוח התקדמות</title>
+<link rel="icon" type="image/svg+xml" href="/app/icon.svg">
+<link rel="i18n" data-lang="en" href="/app/i18n/en.js">
+<link rel="i18n" data-lang="ru" href="/app/i18n/ru.js">
+<link rel="i18n" data-lang="ar" href="/app/i18n/ar.js">
+<link rel="i18n" data-lang="es" href="/app/i18n/es.js">
+<link rel="i18n" data-lang="de" href="/app/i18n/de.js">
+<link rel="i18n" data-lang="fr" href="/app/i18n/fr.js">
+<link rel="i18n" data-lang="it" href="/app/i18n/it.js">
+<link rel="i18n" data-lang="pt" href="/app/i18n/pt.js">
+<link rel="i18n" data-lang="hi" href="/app/i18n/hi.js">
+<script src="/app/i18n.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Secular+One&family=Heebo:wght@400;500;700&family=Sora:wght@400;700&family=Noto+Sans+Devanagari:wght@400;500;700&display=swap">
+<style>
+body{margin:0;background:#F5F7FB;color:#0E1B3D;font-family:Heebo,'Noto Sans Devanagari',system-ui,Arial,sans-serif;padding:16px 16px 40px}
+.bar{max-width:720px;margin:0 auto 12px;display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.bar .btns{display:flex;gap:8px}
+.btn{border:1px solid #DEE4F0;background:#fff;border-radius:10px;padding:9px 14px;font:500 14px Heebo,'Noto Sans Devanagari',sans-serif;cursor:pointer;color:#0E1B3D}
+.btn.pri{background:#1E45B0;border-color:#1E45B0;color:#fff}
+.langsel{border:1px solid #DEE4F0;border-radius:999px;background:#fff;padding:7px 10px;font:500 13px Heebo,sans-serif}
+.msg{max-width:480px;margin:80px auto;text-align:center;color:#5A6680}
+.msg img{width:56px;height:56px}
+@media print{body{padding:0;background:#fff}.bar{display:none}}
+</style>
+</head>
+<body>
+<div class="bar noprint" id="bar" hidden><span id="langbox"></span>
+  <div class="btns"><button class="btn" id="print">🖨</button><button class="btn pri" id="pdf">PDF</button></div></div>
+<div id="out"><div class="msg"><img src="/app/icon.svg" alt=""><p>טוען…</p></div></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="/app/config.js"></script>
+<script src="/app/report-view.js"></script>
+<script>
+(async function(){
+  const out=document.getElementById('out');
+  const fail=t=>{ out.innerHTML='<div class="msg"><img src="/app/icon.svg" alt=""><p>'+I18N.t(t)+'</p></div>'; };
+  const tok=new URLSearchParams(location.search).get('t');
+  if(!tok||!window.supabase) return fail('הקישור לא תקין או שאין חיבור לאינטרנט.');
+  const sb=supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:false}});
+  const {data,error}=await sb.rpc('coach_report_public',{p_token:tok});
+  if(error||!data) return fail('הדוח לא נמצא. ייתכן שהמאמן עדכן אותו — בקשו ממנו קישור חדש.');
+  // the report's language, unless this device already chose one
+  let saved=null; try{ saved=localStorage.getItem('sg-lang'); }catch(e){}
+  if(!saved && data.lang && data.lang!==I18N.lang) await I18N.set(data.lang);
+  const draw=()=>{ out.innerHTML=renderReport(data.body, data.coach_line, {icon:'/app/icon-192.png'});
+    document.title='SINAI Club — '+I18N.t('דוח התקדמות')+' · '+(data.body.first||''); };
+  draw(); I18N.onChange(draw);
+  document.getElementById('langbox').innerHTML=I18N.picker();
+  document.getElementById('bar').hidden=false;
+  document.getElementById('print').onclick=()=>window.print();
+  document.getElementById('pdf').onclick=async e=>{ const b=e.target; b.disabled=true;
+    try{ await reportPdf(document.getElementById('rpcard'),'SINAI-Club-'+(data.body.first||'report')+'-'+data.period+'.pdf'); }
+    catch(err){ window.print(); } b.disabled=false; };
+})();
+</script>
+</body>
+</html>

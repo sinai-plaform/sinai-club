@@ -14,10 +14,10 @@
 <meta property="og:image" content="https://sinaiclub.com/assets/apple-touch-icon.png">
 <script>document.documentElement.className+=" js";</script>
 <!-- languages: same layer and saved choice (sg-lang) as the app; Hebrew is the source text -->
-<script src="/app/i18n.js?v=a9e405ef" data-pack="parents"></script>
+<script src="/app/i18n.js?v=52a8e0cf" data-pack="parents"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Hebrew:wght@400;500;600;700&family=Rubik:wght@500;700;800;900&family=Sora:wght@400;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Hebrew:wght@400;500;600;700&family=Rubik:wght@500;700;800;900&family=Sora:wght@400;700&family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap">
 <style>
 /* Team Blue: light hero with a pass-and-settle football over faint pitch lines → navy marquee → light bento → tossed team tiles → deep-blue security → navy close with lime CTA */
 :root{
@@ -26,7 +26,7 @@
  --up:#138A4E;
  --bg:#F5F7FB;--sur:#fff;--line:#DEE4F0;--head:#0E1B3D;--ink:#0E1B3D;--mut:#5A6680;
  --star:polygon(50% 0,61% 39%,100% 50%,61% 61%,50% 100%,39% 61%,0 50%,39% 39%);
- --display:'Rubik','IBM Plex Sans Hebrew',system-ui,sans-serif;--body:'IBM Plex Sans Hebrew',system-ui,sans-serif;--brand:'Sora',system-ui,sans-serif;
+ --display:'Rubik','Noto Sans Devanagari','IBM Plex Sans Hebrew',system-ui,sans-serif;--body:'IBM Plex Sans Hebrew','Noto Sans Devanagari',system-ui,sans-serif;--brand:'Sora','Noto Sans Devanagari',system-ui,sans-serif;
 }
 *{box-sizing:border-box}
 html{scroll-behavior:smooth;overflow-x:clip}
@@ -336,7 +336,7 @@ html:not([lang="he"]) .hero h1 .l2{white-space:normal}
 <nav><div class="wrap">
  <a href="/" class="brand" aria-label="SINAI Club"><img src="/assets/icon.svg" alt=""><span class="word"><b>SINAI</b><span> Club</span></span></a>
  <div class="links"><a href="#why">למה זה חשוב</a><a href="#you">מה אתם רואים</a><a href="#scores">על הציונים</a><a href="#privacy">פרטיות</a><a href="#join">איך מצטרפים</a><a href="#faq">שאלות</a></div>
- <div style="display:flex;gap:8px;align-items:center"><select class="langsel" translate="no" aria-label="Language" onchange="I18N.set(this.value)"><option value="he" lang="he">עברית</option><option value="en" lang="en">English</option><option value="ru" lang="ru">Русский</option><option value="ar" lang="ar">العربية</option><option value="es" lang="es">Español</option><option value="de" lang="de">Deutsch</option><option value="fr" lang="fr">Français</option><option value="it" lang="it">Italiano</option><option value="pt" lang="pt">Português</option></select><a class="btn btn-lime" href="/app/">כניסה להורים</a></div>
+ <div style="display:flex;gap:8px;align-items:center"><select class="langsel" translate="no" aria-label="Language" onchange="I18N.set(this.value)"><option value="he" lang="he">עברית</option><option value="en" lang="en">English</option><option value="ru" lang="ru">Русский</option><option value="ar" lang="ar">العربية</option><option value="es" lang="es">Español</option><option value="de" lang="de">Deutsch</option><option value="fr" lang="fr">Français</option><option value="it" lang="it">Italiano</option><option value="pt" lang="pt">Português</option><option value="hi" lang="hi">हिन्दी</option></select><a class="btn btn-lime" href="/app/">כניסה להורים</a></div>
 </div></nav>
 <script>try{document.querySelectorAll('.langsel').forEach(function(s){s.value=I18N.lang});}catch(e){}</script>
 

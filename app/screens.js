@@ -39,6 +39,7 @@ VIEWS.home = async function(){
         <div class="pname"><b>האימון הבא: ${esc(dayLabel(next.date))}${next.start_time?' · '+String(next.start_time).slice(0,5):''}</b>
         <span class="xs muted">${esc(next.focus||next.theme||'')}</span></div><span class="pill info">פתח</span></div>`
         :(!todays&&!live?`<p class="xs muted" style="margin-top:8px;text-align:center">אין אימונים מתוכננים. <a href="#" onclick="go('program');return false">לבנות תוכנית</a></p>`:'')}
+      <button class="btn lime" style="width:100%;margin-top:8px" onclick="go('plan',{fresh:true});setTimeout(()=>aiBuildSession(),60)">✨ בנה לי אימון</button>
       <div class="grid2" style="margin-top:8px">
         <button class="btn" onclick="go('match')">מצב משחק</button>
         <button class="btn" onclick="go('broadcast')">עדכון להורים</button>
@@ -125,7 +126,10 @@ function playerForm(p){
       const {data,error}=await sb.from('coach_players').insert(row).select().single();
       if(error) return toast('שגיאה: '+error.message);
       await sb.from('coach_team_players').insert({team_id:S.team.id,player_id:data.id});
+      p={...row,id:data.id};
     }
+    // the parent's phone makes them a registered parent of this child (conversations include them)
+    await linkGuardian(p.id, row.parent_phone, row.parent_name);
     await loadTeam(); closeSheet(); go(S.view==='player'?'squad':S.view); toast('נשמר');
   };
   if(p.id) $('#rm').onclick=async()=>{ if(!confirm('להסיר מהקבוצה?'))return;
@@ -133,6 +137,14 @@ function playerForm(p){
     await loadTeam(); closeSheet(); go('squad'); };
 }
 
+async function linkGuardian(pid, phone, name){
+  const ph=typeof normPhone==='function'?normPhone(phone):null; if(!pid||!ph) return;
+  try{
+    await sb.from('coach_guardians').upsert({club_id:S.club.id,phone:ph,name:name||null},{onConflict:'club_id,phone',ignoreDuplicates:true});
+    const {data:g}=await sb.from('coach_guardians').select('id').eq('club_id',S.club.id).eq('phone',ph).maybeSingle();
+    if(g) await sb.from('coach_guardian_players').upsert({guardian_id:g.id,player_id:pid},{ignoreDuplicates:true});
+  }catch(e){}
+}
 function importSheet(){
   sheet(`<h2>ייבוא רשימת שחקנים</h2>
     <p class="muted sm" style="margin:6px 0 10px">שורה לכל שחקן. אפשר: <code>שם, מספר, תאריך לידה, טלפון הורה</code> — רק השם חובה.</p>
@@ -172,7 +184,7 @@ async function savePlanToSession(){
   if(up.error) return toast('לא נשמר: '+up.error.message);
   await sb.from('coach_session_drills').delete().eq('session_id',sid);
   if(PLAN.items.length) await sb.from('coach_session_drills').insert(PLAN.items.map((it,i)=>
-    ({session_id:sid,drill_id:it.id,ord:i,minutes:+it.min||1,notes:it.notes||null})));
+    ({session_id:sid,drill_id:it.id,ord:i,minutes:+it.min||1,notes:it.notes||null,why:it.why||null})));
   const s=$('#psaved'); if(s){ s.textContent='נשמר ✓'; setTimeout(()=>{ if($('#psaved')) $('#psaved').textContent=''; },1500); }
 }
 async function loadPlanSession(id){
@@ -182,7 +194,7 @@ async function loadPlanSession(id){
   if(!s) return false;
   PLAN={sessionId:id,status:s.status,date:s.date,time:s.start_time?String(s.start_time).slice(0,5):'',
     focus:s.focus||'',theme:s.theme||'',phase:s.phase||'',week:s.week_no,snote:s.notes||'',
-    items:(sd||[]).map(x=>({id:x.drill_id,min:x.minutes,notes:x.notes||''}))};
+    items:(sd||[]).map(x=>({id:x.drill_id,min:x.minutes,notes:x.notes||'',why:x.why||''}))};
   LS('plan',PLAN); return true;
 }
 VIEWS.plan = async function(arg){
@@ -206,6 +218,9 @@ VIEWS.plan = async function(arg){
       <div class="spread"><span class="sm muted">סה"כ <b class="num">${t}</b> מתוך <b class="num">${target}</b> דק׳</span>
         <span class="pill ${t>target?'bad':t===target?'ok':''}">${t>target?'חריגה '+(t-target)+'׳':'נשארו '+(target-t)+'׳'}</span></div>
       <div class="timer" style="padding:0;border:0"><div class="bar"><i style="width:${Math.min(100,t/target*100)}%" class="${t>target?'over':''}"></i></div></div>
+      ${done?'':`<button class="btn lime big" id="aiBuild">✨ בנה לי אימון</button>`}
+      ${PLAN.ai&&!done?`<div class="alert ok sm" style="line-height:1.5">${esc(PLAN.ai.note)}
+        <button class="btn sm ghost" style="margin-top:6px" onclick="aiBuildSession((PLAN.ai.seed||0)+1)">🔁 גרסה אחרת</button></div>`:''}
       ${done?'':`<div class="chips"><span class="xs muted" style="align-self:center">תבניות:</span>
         ${Object.entries(TEMPLATES).map(([k,v])=>`<button class="chip" onclick="loadTpl('${k}')">${esc(v.label)}</button>`).join('')}</div>`}
     </div>
@@ -226,6 +241,7 @@ VIEWS.plan = async function(arg){
     $('#ptm').onchange=e=>{PLAN.time=e.target.value;planChanged();};
   }
   renderPlanList();
+  const ab=$('#aiBuild'); if(ab) ab.onclick=()=>aiBuildSession();
   const sb_=$('#startBtn'); if(sb_) sb_.onclick=startSession;
   const sl=$('#saveLater'); if(sl) sl.onclick=()=>saveSessionForLater();
 };
@@ -236,7 +252,8 @@ function renderPlanList(){
     const d=drillById(it.id)||{name:'תרגיל',cat:'tech'};
     return `<div class="prow" style="flex-wrap:wrap"><div class="av">${i+1}</div>
       <div class="pname" onclick="showDrill('${it.id}',${i})" style="cursor:pointer;min-width:160px"><b>${esc(d.name)}</b>
-        <span class="xs muted">${esc(CATS[d.cat]?.short||'')}${it.notes?' · 📝 '+esc(it.notes.slice(0,60)):''}</span></div>
+        <span class="xs muted">${esc(CATS[d.cat]?.short||'')}${it.notes?' · 📝 '+esc(it.notes.slice(0,60)):''}</span>
+        ${it.why?`<span class="xs" style="display:block;color:var(--accent);margin-top:2px">✨ ${esc(it.why)}${it.swapped?' · <span class="muted">הוחלף ידנית</span>':''}</span>`:''}</div>
       ${done?`<span class="pill">${it.min}׳</span>`:`
       <input type="number" class="num" style="width:54px;padding:5px;text-align:center" value="${it.min}" onchange="setMin(${i},this.value)">
       <button class="btn sm ghost" onclick="noteItem(${i})" title="הערות">📝</button>
@@ -266,7 +283,7 @@ function swapItem(i){
     <div class="stack">${alts.map(d=>`<button class="prow" style="text-align:start" onclick="doSwap(${i},'${d.id}')">
       <div class="pname"><b class="sm">${esc(d.name)}</b><span class="xs muted">${d.min} דק׳ · ${esc(d.src||'')}</span></div></button>`).join('')||'<p class="muted sm">אין חלופות.</p>'}</div>`);
 }
-function doSwap(i,id){ PLAN.items[i].id=id; planChanged(); closeSheet(); go('plan'); }
+function doSwap(i,id){ const it=PLAN.items[i]; it.id=id; if(it.why&&typeof swapWhy==='function') it.why=swapWhy(it); planChanged(); closeSheet(); go('plan'); }
 async function delPlannedSession(){
   if(!PLAN.sessionId || !confirm('למחוק את האימון המתוכנן?')) return;
   await sb.from('coach_sessions').delete().eq('id',PLAN.sessionId);
@@ -277,7 +294,7 @@ async function saveSessionForLater(){
     planned_minutes:planMin(),status:'planned'};
   const {error}=await sb.from('coach_sessions').insert(row);
   if(error) return toast('שגיאה: '+error.message);
-  await sb.from('coach_session_drills').insert(PLAN.items.map((it,i)=>({session_id:row.id,drill_id:it.id,ord:i,minutes:it.min,notes:it.notes||null})));
+  await sb.from('coach_session_drills').insert(PLAN.items.map((it,i)=>({session_id:row.id,drill_id:it.id,ord:i,minutes:it.min,notes:it.notes||null,why:it.why||null})));
   PLAN={focus:'',items:[],date:today()}; LS('plan',PLAN);
   toast('נשמר בתוכנית — '+dayLabel(row.date)); go('program');
 }
@@ -292,7 +309,7 @@ async function startSession(){
     const {data,error}=await sb.from('coach_sessions').insert(row).select().single();
     if(error) return toast('שגיאה: '+error.message);
     sid=data.id;
-    await sb.from('coach_session_drills').insert(PLAN.items.map((it,i)=>({session_id:sid,drill_id:it.id,ord:i,minutes:it.min,notes:it.notes||null})));
+    await sb.from('coach_session_drills').insert(PLAN.items.map((it,i)=>({session_id:sid,drill_id:it.id,ord:i,minutes:it.min,notes:it.notes||null,why:it.why||null})));
   }
   PLAN={focus:'',items:[],date:today()}; LS('plan',PLAN);
   LIVE={idx:0,start:0,timer:null,counts:{}};
@@ -306,7 +323,7 @@ async function openSession(id){
     await sb.from('coach_sessions').update({status:'live',date:today()}).eq('id',id); data.status='live'; data.date=today();
   }
   const {data:sd}=await sb.from('coach_session_drills').select('*').eq('session_id',id).order('ord');
-  S.session=data; S.sessionDrills=(sd||[]).map(x=>({id:x.drill_id,min:x.minutes,ord:x.ord,rowId:x.id,rating:x.rating,notes:x.notes||''}));
+  S.session=data; S.sessionDrills=(sd||[]).map(x=>({id:x.drill_id,min:x.minutes,ord:x.ord,rowId:x.id,rating:x.rating,notes:x.notes||'',why:x.why||''}));
   if(data.status==='done') return go('sessionReport');
   go('attend');
 }
@@ -372,9 +389,11 @@ VIEWS.live = function(){
       </div>
     </div>
     ${it.notes?`<div class="alert ok" style="margin-top:10px">📝 <span translate="no">${esc(it.notes)}</span></div>`:''}
+    ${it.why?`<p class="xs" style="margin:8px 2px 0;color:var(--accent)">✨ ${esc(it.why)}</p>`:''}
     ${d.points&&d.points.length?`<p class="sm muted" style="margin:10px 2px">💡 ${esc(d.points[0])}</p>`:''}
     <div class="hd"><h2>דירוג מהיר</h2><span class="xs muted">לחיצה על שחקן</span></div>
     <div class="tiles" id="tiles"></div>
+    ${typeof voiceRateBtn==='function'?voiceRateBtn():''}
     <div class="row" style="margin-top:14px;gap:8px">
       <button class="btn" style="flex:1" onclick="quickRound()">סבב מהיר</button>
       <button class="btn" style="flex:1" onclick="go('attend')">נוכחות</button>

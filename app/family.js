@@ -130,10 +130,11 @@ async function famKid(id){
   FAM.kid = k;
   $('#app').innerHTML = famBar(k.name, true) + '<div class="wrap"><div class="empty">טוען…</div></div>';
 
-  const [{data:att},{data:goals},{data:team}] = await Promise.all([
+  const [{data:att},goalsHtml,{data:team},{data:reps}] = await Promise.all([
     sb.from('coach_attendance').select('present,session_id,rpe').eq('player_id',id).limit(400),
-    sb.from('coach_goals').select('*').eq('player_id',id).order('created_at',{ascending:false}).limit(6),
-    sb.from('coach_team_players').select('team_id, coach_teams(*)').eq('player_id',id).maybeSingle()
+    famGoalsHtml(id).catch(()=>''),
+    sb.from('coach_team_players').select('team_id, coach_teams(*)').eq('player_id',id).maybeSingle(),
+    sb.from('coach_reports').select('id,period,share_token,status').eq('player_id',id).neq('status','draft').order('period',{ascending:false}).limit(6)
   ]);
   const t = team?.coach_teams;
   const marked=(att||[]).filter(x=>x.present);
@@ -155,11 +156,16 @@ async function famKid(id){
     <div class="card"><h2><span translate="no">${esc(k.name)}</span></h2>
       <p class="muted sm">${t?esc(t.name):''}${pct!=null?' · נוכחות '+pct+'%':''}</p></div>
 
-    ${goals&&goals.length?`<div class="hd"><h2>יעדים</h2></div><div class="stack">
-      ${goals.map(g=>`<div class="prow"><div class="pname" style="flex:1">
-        <b class="sm">${esc(g.text)}</b>
-        <span class="xs muted">${g.done_at?'הושג 🎉':(g.due?'עד '+fmtDate(g.due):'בתהליך')}</span></div></div>`).join('')}
-      </div>`:''}
+    ${goalsHtml}
+
+    ${(reps||[]).length?`<div class="hd"><h2>דוחות חודשיים</h2></div><div class="stack">
+      ${reps.map(r=>`<a class="prow" style="text-decoration:none;color:inherit" href="/r/?t=${esc(r.share_token)}" target="_blank" rel="noopener">
+        <div class="pname"><b class="sm">${esc(I18N.date(r.period+'-15',{month:'long',year:'numeric'}))}</b><span class="xs muted">דוח התקדמות מהמאמן</span></div>
+        <span class="muted">${I18N.fwd()}</span></a>`).join('')}</div>`:''}
+
+    <div class="card" style="margin-top:14px"><h3>💬 שיחה עם המאמן</h3>
+      <p class="xs muted" style="margin:4px 0 10px">${S.role==='player'?'ההורים שלך רואים את השיחה הזו.':'השיחה של המאמן עם הילד — אתם תמיד בתוכה.'}</p>
+      <button class="btn primary" onclick="openThread('${k.id}')">פתיחת השיחה</button></div>
 
     ${attrHtml}
 
@@ -208,9 +214,9 @@ async function famKid(id){
           ${k.login_enabled?'<button class="btn danger" id="kclose">סגירת החשבון</button>':''}
         </div></div>`:''}
 
-    <div class="card" style="margin-top:14px"><h3>הודעה למאמן</h3>
+    ${S.role==='parent'?`    <div class="card" style="margin-top:14px"><h3>הודעה למאמן</h3>
       <p class="xs muted" style="margin:4px 0 10px">היעדרות, פציעה, או כל דבר שכדאי שידע.</p>
-      <button class="btn" onclick="famNotify('${k.id}')">שליחה בוואטסאפ</button></div>`;
+      <button class="btn" onclick="famNotify('${k.id}')">שליחה בוואטסאפ</button></div>`:''}`;
 
   const hd=$('#hdsign');
   if(hd) hd.onclick=async()=>{

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
 <meta name="theme-color" content="#1E45B0">
-<meta name="app-version" content="2.9.0">
+<meta name="app-version" content="3.0.0">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/svg+xml" href="icon.svg">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
@@ -14,17 +14,18 @@
 <meta name="apple-mobile-web-app-title" content="SINAI Club">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>SINAI Club</title>
-<link rel="i18n" data-lang="en" href="i18n/en.js?v=008778ce">
-<link rel="i18n" data-lang="ru" href="i18n/ru.js?v=ddea4123">
-<link rel="i18n" data-lang="ar" href="i18n/ar.js?v=583840ac">
-<link rel="i18n" data-lang="es" href="i18n/es.js?v=63f89124">
-<link rel="i18n" data-lang="de" href="i18n/de.js?v=d7cac9e8">
-<link rel="i18n" data-lang="fr" href="i18n/fr.js?v=59297879">
-<link rel="i18n" data-lang="it" href="i18n/it.js?v=f5c78dea">
-<link rel="i18n" data-lang="pt" href="i18n/pt.js?v=41ebba31">
-<script src="i18n.js?v=a9e405ef"></script>
+<link rel="i18n" data-lang="en" href="i18n/en.js?v=9a6ebc00">
+<link rel="i18n" data-lang="ru" href="i18n/ru.js?v=d6417fcb">
+<link rel="i18n" data-lang="ar" href="i18n/ar.js?v=91735a4b">
+<link rel="i18n" data-lang="es" href="i18n/es.js?v=32145125">
+<link rel="i18n" data-lang="de" href="i18n/de.js?v=dfe656bf">
+<link rel="i18n" data-lang="fr" href="i18n/fr.js?v=dab38162">
+<link rel="i18n" data-lang="it" href="i18n/it.js?v=9c17c07e">
+<link rel="i18n" data-lang="pt" href="i18n/pt.js?v=b584d85c">
+<link rel="i18n" data-lang="hi" href="i18n/hi.js?v=dbb68773">
+<script src="i18n.js?v=52a8e0cf"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Secular+One&family=Heebo:wght@400;500;700&family=Sora:wght@400;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Secular+One&family=Heebo:wght@400;500;700&family=Sora:wght@400;700&family=Noto+Sans+Devanagari:wght@400;500;700&display=swap">
 <style>
 :root{
   --bg:#F5F7FB; --surface:#FFFFFF; --surface2:#E9EFFC; --ink:#0E1B3D; --muted:#5A6680; --line:#DEE4F0;
@@ -49,9 +50,9 @@
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{height:100%}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:Heebo,system-ui,Arial,sans-serif;font-size:15px;line-height:1.5;
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Heebo,"Noto Sans Devanagari",system-ui,Arial,sans-serif;font-size:15px;line-height:1.5;
   padding-top:var(--safeT);overscroll-behavior-y:none}
-h1,h2,h3{font-family:"Secular One",Heebo,sans-serif;font-weight:400;margin:0;line-height:1.15;text-wrap:balance}
+h1,h2,h3{font-family:"Secular One",Heebo,"Noto Sans Devanagari",sans-serif;font-weight:400;margin:0;line-height:1.15;text-wrap:balance}
 h1{font-size:24px} h2{font-size:19px} h3{font-size:16px}
 p{margin:0}
 button,input,select,textarea{font:inherit;color:inherit}
@@ -234,6 +235,7 @@ table.tbl th{color:var(--muted);font-weight:500;font-size:12.5px}
 </style>
 </head>
 <body>
+<script id="sc-intro">/* branded intro — source: /assets/intro.src.js */!function(){try{if(window.__scApp)return;var e="sc-intro";if(sessionStorage.getItem(e))return;if(sessionStorage.setItem(e,"1"),window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches)return;var t=document.createElement("div");t.id="scIntro",t.setAttribute("aria-hidden","true"),t.innerHTML='<style>#scIntro{position:fixed;inset:0;z-index:2147483000;display:grid;place-items:center;background:radial-gradient(120% 90% at 50% 40%,#1E45B0 0%,#0D1F4F 70%);cursor:pointer;transition:opacity .25s ease}#scIntro.out{opacity:0}#scIntro .in{display:flex;flex-direction:column;align-items:center}#scIntro img{width:92px;height:92px;border-radius:22px;opacity:0;transform:scale(.82);filter:drop-shadow(0 12px 30px rgba(0,0,0,.35));animation:siA .5s cubic-bezier(.22,1,.36,1) .05s forwards}#scIntro .w{direction:ltr;margin-top:14px;font:400 30px/1 Sora,Heebo,system-ui,sans-serif;letter-spacing:-.4px;color:#fff;opacity:0;transform:translateY(8px);animation:siB .4s ease .3s forwards}#scIntro .w b{font-weight:700}#scIntro .w span{color:#B9EE3E}#scIntro i{display:block;height:3px;width:0;margin-top:14px;border-radius:3px;background:#B9EE3E;animation:siC .45s cubic-bezier(.22,1,.36,1) .55s forwards}@keyframes siA{to{opacity:1;transform:none}}@keyframes siB{to{opacity:1;transform:none}}@keyframes siC{to{width:132px}}</style><div class="in"><img src="icon.svg" alt=""><div class="w"><b>SINAI</b> <span>Club</span></div><i></i></div>',document.body.appendChild(t);var i,r=!1;function n(){r||(r=!0,clearTimeout(i),t.className="out",setTimeout(function(){t.parentNode&&t.parentNode.removeChild(t)},260),removeEventListener("keydown",n))}i=setTimeout(n,1230),t.addEventListener("pointerdown",n),addEventListener("keydown",n)}catch(o){}}();</script>
 <div id="offlineBar" class="banner hide">אופליין — הנתונים נשמרים במכשיר ויסונכרנו אוטומטית</div>
 <div id="app"></div>
 <nav class="nav hide" id="nav"><div class="in">
@@ -248,17 +250,23 @@ table.tbl th{color:var(--muted);font-weight:500;font-size:12.5px}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="drills.js?v=588a5ba0"></script>
 <script src="config.js?v=b8a874fc"></script>
+<script src="/assets/currency.js?v=361e83a3"></script>
 <script src="offline.js?v=9837fcec"></script>
-<script src="core.js?v=a29677d8"></script>
+<script src="core.js?v=0508c742"></script>
 <script src="rules.js?v=67640515"></script>
-<script src="screens.js?v=69ba60ca"></script>
-<script src="screens2.js?v=3c6e21c5"></script>
-<script src="roster.js?v=fd07ffb4"></script>
-<script src="family.js?v=d526951b"></script>
+<script src="screens.js?v=5629b089"></script>
+<script src="screens2.js?v=419ce6ed"></script>
+<script src="roster.js?v=30c61a16"></script>
+<script src="family.js?v=d0fe00dd"></script>
 <script src="board.js?v=2cb537f6"></script>
 <script src="anim.js?v=0d6a886e"></script>
 <script src="program.js?v=8e9589e3"></script>
-<script src="voice.js?v=9501e610"></script>
+<script src="voice.js?v=3c9679f9"></script>
+<script src="build.js?v=e3acb81c"></script>
+<script src="goals.js?v=cbc57cd6"></script>
+<script src="threads.js?v=0a8632c5"></script>
+<script src="report-view.js?v=eb18e489"></script>
+<script src="reports.js?v=28d8ffff"></script>
 </body>
 </html>
 
