@@ -60,7 +60,7 @@ FX.price=function(ils, cur){
   var rate=cur==='ILS'?1:(d&&d.rates&&d.rates[cur]);
   if(!rate){ cur='ILS'; rate=1; }
   var v=ils*rate, dig=(cur==='JPY'||cur==='INR'||Number.isInteger(v)||v>=100)?0:2;
-  var text; try{ text=new Intl.NumberFormat(loc,{style:'currency',currency:cur,minimumFractionDigits:dig,maximumFractionDigits:dig}).format(v); }
+  var text; try{ text=new Intl.NumberFormat(loc,{style:'currency',currency:cur,currencyDisplay:(cur==='USD'||cur==='ILS'||cur==='INR')?'narrowSymbol':'symbol',minimumFractionDigits:dig,maximumFractionDigits:dig}).format(v); }
   catch(e){ text=v.toFixed(dig)+' '+cur; }
   return {text:text, cur:cur, value:v};
 };
