@@ -25,3 +25,14 @@ body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:50;opa
   .spot i{animation:spotPing 3s ease-out infinite}
   @keyframes spotPing{0%{box-shadow:0 0 0 0 rgba(77,124,240,.45),0 0 0 5px var(--spot-ring)}100%{box-shadow:0 0 0 24px rgba(77,124,240,0),0 0 0 5px var(--spot-ring)}}
 }
+
+/* Signature depth (2026-10-17): a far pitch layer drifting the other way, livelier main drift */
+.spot .far{display:block;position:absolute;left:50%;top:50%;width:2100px;height:1650px;transform:translate(-50%,-50%);z-index:-1;
+  background:rgba(77,124,240,.07);-webkit-mask:url(pitch.svg) center/contain no-repeat;mask:url(pitch.svg) center/contain no-repeat}
+@media (max-width:560px){.spot .far{display:block;width:1500px;height:1180px}}
+@media (prefers-reduced-motion:no-preference){
+  .spot::before{animation:pitchDrift2 34s ease-in-out infinite alternate}
+  .spot .far{display:block;animation:pitchFar 52s ease-in-out -10s infinite alternate}
+  @keyframes pitchDrift2{from{transform:translate(-50%,-50%) scale(1) rotate(0)}to{transform:translate(-50%,-50%) scale(1.07) rotate(4deg)}}
+  @keyframes pitchFar{from{transform:translate(-50%,-50%) scale(1.04) rotate(2deg)}to{transform:translate(-50%,-50%) scale(.97) rotate(-3deg)}}
+}
